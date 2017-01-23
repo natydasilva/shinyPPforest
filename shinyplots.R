@@ -69,8 +69,6 @@ dat_dens <-function(PPclassOBJ, node.id, Rule, legend = TRUE, std = TRUE,
 
 #Density plot Tab 2
 PPtree_dens <- function(ppf, tr) {
-# dat_pl <- data.frame(nn = 1:length(ppf[[8]][[2]][[tr]]$Tree.Struct[,1])) %>%
-#   ddply(.(nn),  function(x) dat_dens(PPclassOBJ=ppf[[8]][[2]][[tr]],node.id=x$nn,Rule=1))
 
 
 nn <- data.frame(nn = 1:length(ppf[[8]][[2]][[tr]]$Tree.Struct[,1]))
@@ -112,9 +110,6 @@ ggplotly(p1,tooltip=c("fill","x"))
 #Mosaic plot Tab 2
 PPtree_mosaic <- function(ppf,tr){
   
-  # dat_pl <- data.frame(nn = 1:length(ppf[[8]][[2]][[tr]]$Tree.Struct[,1])) %>%
-  #    ddply(.(nn),  function(x) dat_dens(PPclassOBJ=ppf[[8]][[2]][[tr]],node.id=x$nn,Rule=1))
-
   
 nn <- data.frame(nn = 1:length(ppf[[8]][[2]][[tr]]$Tree.Struct[,1]))
   densf <- function(x){
