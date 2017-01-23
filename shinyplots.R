@@ -69,8 +69,18 @@ dat_dens <-function(PPclassOBJ, node.id, Rule, legend = TRUE, std = TRUE,
 
 #Density plot Tab 2
 PPtree_dens <- function(ppf, tr) {
-dat_pl <- data.frame(nn = 1:length(ppf[[8]][[2]][[tr]]$Tree.Struct[,1])) %>%
-  ddply(.(nn),  function(x) dat_dens(PPclassOBJ=ppf[[8]][[2]][[tr]],node.id=x$nn,Rule=1))
+# dat_pl <- data.frame(nn = 1:length(ppf[[8]][[2]][[tr]]$Tree.Struct[,1])) %>%
+#   ddply(.(nn),  function(x) dat_dens(PPclassOBJ=ppf[[8]][[2]][[tr]],node.id=x$nn,Rule=1))
+
+
+nn <- data.frame(nn = 1:length(ppf[[8]][[2]][[tr]]$Tree.Struct[,1]))
+densf <- function(x){
+  dat_dens(PPclassOBJ=ppf[[8]][[2]][[tr]],node.id=x,Rule=1)
+}
+
+dat_pl<- apply(nn, 1, densf)  %>%  lapply(data.frame) %>%bind_rows()
+
+
 
 myColors <- brewer.pal(length(unique(ppf[[8]][[2]][[tr]]$origclass)),"Dark2")
 names(myColors) <- levels(dat_pl$Class)
@@ -102,8 +112,16 @@ ggplotly(p1,tooltip=c("fill","x"))
 #Mosaic plot Tab 2
 PPtree_mosaic <- function(ppf,tr){
   
-  dat_pl <- data.frame(nn = 1:length(ppf[[8]][[2]][[tr]]$Tree.Struct[,1])) %>%
-    ddply(.(nn),  function(x) dat_dens(PPclassOBJ=ppf[[8]][[2]][[tr]],node.id=x$nn,Rule=1))
+  # dat_pl <- data.frame(nn = 1:length(ppf[[8]][[2]][[tr]]$Tree.Struct[,1])) %>%
+  #    ddply(.(nn),  function(x) dat_dens(PPclassOBJ=ppf[[8]][[2]][[tr]],node.id=x$nn,Rule=1))
+
+  
+nn <- data.frame(nn = 1:length(ppf[[8]][[2]][[tr]]$Tree.Struct[,1]))
+  densf <- function(x){
+    dat_dens(PPclassOBJ=ppf[[8]][[2]][[tr]],node.id=x,Rule=1)
+  }
+
+  dat_pl<- apply(nn, 1, densf)  %>%  lapply(data.frame) %>%bind_rows()
   
   levels(dat_pl$Dir)<-c("Left", "Right")
   myColors <- brewer.pal(length( unique( ppf[[8]][[2]][[tr]]$origclass ) ), "Dark2")

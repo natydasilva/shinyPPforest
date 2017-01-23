@@ -1,7 +1,6 @@
 
 library(ggplot2)
 library(shiny)
-library(plyr)
 library(plotly)
 library(stringr)
 library(PPtreeViz)
@@ -56,11 +55,22 @@ f.helmert <- function(d)
 #projected data
 projct <- t(f.helmert(length(unique(ppf$train[ , ppf$class.var] )))[-1, ])
 
-bestnode <- plyr::ldply(ppf[[8]][[2]], function(x) {
+# bestnode <- plyr::ldply(ppf[[8]][[2]],
+#                function(x){
+#   bn <- abs(x$projbest.node)
+#   bn[bn == 0] <- NA
+#   dat.fr <- data.frame(node = 1:dim(x$projbest.node)[1], bn)
+#   
+#   })
+
+
+bnf <- function(x){
   bn <- abs(x$projbest.node)
   bn[bn == 0] <- NA
-  dat.fr <- data.frame(node = 1:dim(x$projbest.node)[1],bn)
-  })
+  data.frame(node = 1:dim(x$projbest.node)[1], bn)
+}
+bestnode <- ppf1[[8]][[2]] %>%  lapply(bnf) %>%bind_rows()
+
 
 colnames(bestnode)[-1] <- colnames(ppf$train[ , -which(colnames(ppf$train)==ppf$class.var)])
 bestnode$node <- as.factor(bestnode$node)
@@ -102,7 +112,7 @@ gg1 <-  makePairs(dat3)
 ###Tab 2 data
 ##Importance tree
 
-impo.pl <-bestnode %>% 
+impo.pl <- bestnode %>% 
   mutate(ids = rep(1:ppf$n.tree,each = nrow(ppf[[8]][[2]][[1]]$projbest.node) ) ) %>% 
   gather(var, value, -ids, -node)
 impo.pl$Variables <- as.numeric(as.factor(impo.pl$var))
@@ -125,20 +135,22 @@ dat.sidepp.pl <- dat.sidepp %>% gather(Classvote,Probability,-pred,-ids,-Type)
 colnames(dat.sidepp.pl )[2] <- "Class"
 
 #ROC
-  dat.rocpprf <- dat.sidepp.pl %>% group_by(Classvote) %>% 
-  mutate(cond = Class %in% Classvote)  %>%
-  ungroup() %>%  ddply(.(Classvote), function(d) {
-    rocky(d$cond,d$Probability)
-  })
 
+
+  rocf <- function(d) {
+    rocky(d$cond,d$Probability)
+  }
+  dat.rocpprf <- dat.sidepp.pl %>% group_by(Classvote) %>% 
+    mutate(cond = Class %in% Classvote)  %>%
+    ungroup() %>%  group_by(Classvote) %>% do(rocf(.))
+  
+  
 dat.rocpprf$Classvote <- as.factor(dat.rocpprf$Classvote)
 
 
 dat.rocrf <- dat.side.pl %>%group_by(Classvote) %>% 
   mutate(cond = Class %in% Classvote)  %>%
-  ungroup() %>%  ddply(.(Classvote),function(d) {
-    rocky(d$cond,d$Probability)
-  })
+  ungroup() %>%  group_by(Classvote) %>% do(rocf(.))
 
 dat.rocrf$Classvote <- as.factor(dat.rocrf$Classvote)
 
