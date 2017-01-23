@@ -1,5 +1,5 @@
 #Data trans density and mosaic
-dat_dens <-function(PPclassOBJ, node.id, Rule, legend = TRUE, std = TRUE, 
+dat_dens <- function(PPclassOBJ, node.id, Rule, legend = TRUE, std = TRUE, 
                         image = FALSE, diff.prop = 0.2,c1=FALSE) {
   
   searchGroup <- function(node.id, TS, gName) {
@@ -163,10 +163,16 @@ ppf_oob_error <- function(ppf, nsplit1) {
       lapply(attributes(ppf$boot.samp)$indices[1:m], function(x)
         x + 1)
     
-    oob.obs <-
-      plyr::ldply(index2, function(x)
-        (!l.train %in% x))
+    # oob.obs <-
+    #   plyr::ldply(index2, function(x)
+    #     (!l.train %in% x))
+
+    
+    oob.obs <- index2 %>%  lapply(function(x)
+      data.frame(obs=!l.train %in% x)) %>% bind_cols() %>%t()
     pred.mtree <- ppf$vote.mat[1:m,]
+
+    
     
     oob.pred <-
       sapply(
@@ -191,11 +197,24 @@ ppf_oob_error <- function(ppf, nsplit1) {
     c(oob.all, oob.class)
   }
   
-  oob.err.sp <-
-    plyr::mdply(data.frame(m = round(seq(
-      2, round(ppf$n.tree),nsplit1
-    ))), error.cum, ppf = ppf)
+  # oob.err.sp <-
+  #   plyr::mdply(data.frame(m = round(seq(
+  #     2, round(ppf$n.tree),nsplit1
+  #   ))), error.cum, ppf = ppf)
+  # 
+  # 
   
+  
+  
+  mm <- data.frame(m = round(seq(
+    2, round(ppf$n.tree),nsplit1)))
+  
+  errcfun <- function(x){
+    error.cum(ppf,x)
+  }
+  
+  oob.err.sp <- data.frame(mm, apply(mm, 1,errcfun)  %>% t() )
+
   
   
   
