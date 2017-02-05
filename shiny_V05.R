@@ -10,6 +10,7 @@ library(RColorBrewer)
 library(randomForest)
 library(pROC)
 library(ggmosaic)
+library(PPforest)
 source("shinyplots.R")
 
 data.sources = list.files(pattern="*.RData")
@@ -18,26 +19,49 @@ for(i in 1:length(data.sources)){
 }
 
 
-runAppforest <- function(ppf, imp){
+ppf_crab <- PPforest(data = crab, class = "Type",
+                      size.tr = 1, m = 500, size.p = sqrt(ncol(crab)-1)/(ncol(crab)-1), PPmethod = 'LDA' )
+impo_crab <-   permute_importance2(ppf = ppf_crab)
+
+save(ppf_crab, file="ppf_crab.Rdata")
+save(impo_crab, file="impo_crab.Rdata")
+
+ppf <- ppf3
+impo <- impo3
+
+
+ppf<-   ppf_tennis
+impo <-   permute_importance2(ppf = ppf_tennis)
+runAppforest <- function(ppf, imp, class){
 
 #################################
 #             Data              #
 #################################
 
 #random forest
-rf <- randomForest(Type ~ ., data = ppf$train, ntree = ppf$n.tree, importance = TRUE,
+  colcl <- which(colnames(ppf$train)%in%class)
+  
+
+ 
+    if(!is.factor(ppf$train[,colcl] )){
+      ppf$train[,colcl] <- as.factor(ppf$train[,colcl])
+    }
+rf <- randomForest(x = ppf$train[,-colcl], y = ppf$train[,colcl] , data = ppf$train, ntree = ppf$n.tree, importance = TRUE,
                    proximity = TRUE)
+
 n.class <- ppf$train %>% select_(ppf$class.var) %>% unique() %>% nrow()
  
 lev <- ppf$train %>% select_(ppf$class.var) %>%   sapply(levels) %>% as.factor() 
 
 
-k <- 2
+k = 2
 id <- diag(dim(ppf$train)[1])
-id[lower.tri(id, diag = TRUE)] <- 1 - ppf[[9]]$proxi
-rf.mds <- stats::cmdscale(as.dist(id), eig = TRUE, k = k)
+id <- id + 1 - ppf$proximity
+rf.mds <- stats::cmdscale(d = stats::as.dist(id), eig = TRUE,  k = k)
 colnames(rf.mds$points) <- paste("MDS", 1:k, sep = "")
 nlevs <- nlevels(ppf$train[, 1])
+
+df <- data.frame(Class = ppf$train[, 1], rf.mds$points)
 
 f.helmert <- function(d)
 {
@@ -55,21 +79,13 @@ f.helmert <- function(d)
 #projected data
 projct <- t(f.helmert(length(unique(ppf$train[ , ppf$class.var] )))[-1, ])
 
-# bestnode <- plyr::ldply(ppf[[8]][[2]],
-#                function(x){
-#   bn <- abs(x$projbest.node)
-#   bn[bn == 0] <- NA
-#   dat.fr <- data.frame(node = 1:dim(x$projbest.node)[1], bn)
-#   
-#   })
-
-
-bnf <- function(x){
+bnf <- function(x) {
   bn <- abs(x$projbest.node)
   bn[bn == 0] <- NA
   data.frame(node = 1:dim(x$projbest.node)[1], bn)
 }
-bestnode <- ppf1[[8]][[2]] %>%  lapply(bnf) %>%bind_rows()
+
+bestnode <- ppf[["output.trees"]] %>%  lapply(bnf) %>% bind_rows()
 
 
 colnames(bestnode)[-1] <- colnames(ppf$train[ , -which(colnames(ppf$train)==ppf$class.var)])
@@ -79,7 +95,7 @@ bestnode$node <- as.factor(bestnode$node)
 myscale <- function(x) (x - mean(x)) / sd(x)
 
 scale.dat <- ppf$train %>% mutate_each(funs(myscale),-matches(ppf$class.var)) 
-scale.dat.melt <- scale.dat %>%  mutate(ids = 1:nrow(ppf$train)) %>% gather(var,Value,-Type,-ids)
+scale.dat.melt <- scale.dat %>%  mutate(ids = 1:nrow(ppf$train)) %>% gather(var,Value,- colcl,-ids, convert=TRUE)
 scale.dat.melt$Variables <- as.numeric(as.factor(scale.dat.melt$var))
 colnames(scale.dat.melt)[1] <- "Class"
 
@@ -101,8 +117,21 @@ makePairs <- function(dat){
 }
 
 #ternary
-dat3 <- data.frame(Class = ppf$train[, 1], ids = 1:nrow(rf.mds$points),
+dat3 <- data.frame(Class = ppf$train[, colcl], ids = 1:nrow(rf.mds$points),
                    proj.vote = as.matrix(ppf$votes) %*% projct)
+
+
+
+dat3 <-
+  data.frame(
+    Class = ppf$train[, 1],
+    ids = 1:length(ppf$train[, 1]),
+    proj.vote = as.matrix(ppf$votes) %*% projct
+  )
+
+
+
+
 ##with 3 or less classes
 empt <-rep(1:nrow(dat3), 3)
 dat3.empt <- dat3[empt,] %>% mutate(rep = rep(1:3,each=nrow(dat3)))
@@ -113,14 +142,14 @@ gg1 <-  makePairs(dat3)
 ##Importance tree
 
 impo.pl <- bestnode %>% 
-  mutate(ids = rep(1:ppf$n.tree,each = nrow(ppf[[8]][[2]][[1]]$projbest.node) ) ) %>% 
+  mutate(ids = rep(1:ppf$n.tree,each = nrow(ppf[[8]][[1]]$projbest.node) ) ) %>% 
   gather(var, value, -ids, -node)
 impo.pl$Variables <- as.numeric(as.factor(impo.pl$var))
 impo.pl$Abs.importance <- round(impo.pl$value,2)
 
 
 #eror tree
-error.tree <- data_frame(ids = 1:ppf$n.tree, trees = "trees", OOB.error.tree = ppf$oob.error.tree)
+error.tree <- data_frame(ids = 1:ppf$n.tree, trees = "trees", OOB.error.tree = ppf$oob.error.tree[,1])
 
 ###Tab 3
 #rf
@@ -137,22 +166,24 @@ colnames(dat.sidepp.pl )[2] <- "Class"
 #ROC
 
 
-  rocf <- function(d) {
-    rocky(d$cond,d$Probability)
-  }
-  dat.rocpprf <- dat.sidepp.pl %>% group_by(Classvote) %>% 
-    mutate(cond = Class %in% Classvote)  %>%
-    ungroup() %>%  group_by(Classvote) %>% do(rocf(.))
-  
-  
+
+rocf <- function(d) {
+  rocky(d$cond,d$Probability)
+}
+dat.rocpprf <- dat.sidepp.pl %>% group_by(Classvote) %>%
+  mutate(cond = Class %in% Classvote)  %>%
+  ungroup() %>%  group_by(Classvote) %>% do(rocf(.))
+
+
 dat.rocpprf$Classvote <- as.factor(dat.rocpprf$Classvote)
 
 
-dat.rocrf <- dat.side.pl %>%group_by(Classvote) %>% 
+dat.rocrf <- dat.side.pl %>%group_by(Classvote) %>%
   mutate(cond = Class %in% Classvote)  %>%
   ungroup() %>%  group_by(Classvote) %>% do(rocf(.))
 
 dat.rocrf$Classvote <- as.factor(dat.rocrf$Classvote)
+
 
 #oob error data rf
 nsplit1 <- round(nrow(ppf$train)/13)
@@ -174,8 +205,8 @@ names(myColors) <- levels(dat_rf$Class)
 
 #imporf
 aux <- data.frame(rf$importance)
-imp.pl <- data.frame(nm=rownames(rf$importance),imp=aux[,"MeanDecreaseAccuracy"]) %>% arrange(imp)
-imp.pl$nm<-  factor(imp.pl$nm, levels= imp.pl[order( imp.pl$imp), "nm"])
+imp.pl <- data.frame(nm = rownames(rf$importance),imp = aux[,"MeanDecreaseAccuracy"]) %>% arrange(imp)
+imp.pl$nm <-  factor(imp.pl$nm, levels = imp.pl[order( imp.pl$imp), "nm"])
 
 #############################
 #             UI            #
@@ -225,10 +256,10 @@ ui <-   fluidPage(
                )
       ),
       fluidRow(
-        if(sum(ppf[[8]][[2]][[1]]$Tree.Struct[,4]!=0) == 1){
+        if(sum(ppf[[8]][[1]]$Tree.Struct[,4]!=0) == 1){
         column(width = 4,
                 plotlyOutput("plotdensity",height = 400))
-        }else if(sum(ppf[[8]][[2]][[1]]$Tree.Struct[,4]!=0) == 2){
+        }else if(sum(ppf[[8]][[1]]$Tree.Struct[,4]!=0) == 2){
           column(width = 7,
                  plotlyOutput("plotdensity",height = 400))
         }else{
@@ -238,10 +269,10 @@ ui <-   fluidPage(
   
       ),
       fluidRow(
-        if(sum(ppf[[8]][[2]][[1]]$Tree.Struct[,4]!=0) == 1 ){
+        if(sum(ppf[[8]][[1]]$Tree.Struct[,4]!=0) == 1 ){
         column(width = 4,
                plotlyOutput("plotmosaic",height = 400))
-        }else if(sum(ppf[[8]][[2]][[1]]$Tree.Struct[,4]!=0) == 2 ){
+        }else if(sum(ppf[[8]][[1]]$Tree.Struct[,4]!=0) == 2 ){
           column(width = 7,
                  plotlyOutput("plotmosaic",height = 400))
         }else{
@@ -543,9 +574,9 @@ rv <- reactiveValues( data = data.frame(
     yy2 <- yy1[!is.na(yy1)]
     
     if (length(yy2) > 0) {
-      plot(ppf[[8]][[2]][[yy2]])
+      plot(ppf[[8]][[yy2]])
     }else{
-      plot(ppf[[8]][[2]][[1]])
+      plot(ppf[[8]][[1]])
       
     }
   })
@@ -724,7 +755,7 @@ rv <- reactiveValues( data = data.frame(
     
         p1 <- oob.pl %>% ggplot(aes( x = tree.id, y = OOB.error , colour = Class)) + 
           geom_point(alpha = .5) + geom_line(size = I(0.5), alpha = .5) + labs(y = "OOB error rate", 
-          x = "Number of trees", title = "Cumulative OOB error") + ylim(c(0,1)) +
+          x = "Number of trees", title = "Cumulative OOB error") + ylim( c(0,1) ) +
           theme(legend.position = "none", aspect.ratio = 1) + scale_color_manual(values = myColors)
       }
       

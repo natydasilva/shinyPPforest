@@ -67,72 +67,111 @@ dat_dens <- function(PPclassOBJ, node.id, Rule, legend = TRUE, std = TRUE,
    }
 }
 
-#Density plot Tab 2
-PPtree_dens <- function(ppf, tr) {
+# #Density plot Tab 2
+# PPtree_densold <- function(ppf, tr) {
+# 
+# nodes <- ppf[[8]][[tr]]$Tree.Struct[ppf[[8]][[tr]]$Tree.Struct[,4]!=0,1]
+# nn <- data.frame(nn = 1:length(ppf[[8]][[tr]]$Tree.Struct[,1]))
+# densf <- function(x){
+#   dat_dens(PPclassOBJ=ppf[[8]][[tr]],node.id=x,Rule=1)
+# }
+# 
+# dat_pl<- apply(nn, 1, densf)  %>%  lapply(data.frame) %>%bind_rows()
+# 
+# 
+# 
+# myColors <- brewer.pal(length(unique(ppf[[8]][[tr]]$origclass)),"Dark2")
+# names(myColors) <- levels(dat_pl$Class)
+# 
+# 
+# if( length( unique(dat_pl$node.id ) ) >=3 ){
+# p1 <- dat_pl %>% filter(node.id %in% unique(node.id )[nodes] ) %>% 
+#   ggplot( aes(x = proj.data, group = Class,fill = Class)) + geom_density(alpha = .5) +
+#         facet_grid( ~node.id, scales = 'free') + scale_fill_manual(values= myColors) +
+#         theme(legend.position="none", aspect.ratio = 1) + geom_vline(aes(xintercept = cut), 
+#              linetype = "dashed",  color = 2 ) + xlab("")  
+# 
+# }else{
+#   p1 <-  ggplot(dat_pl, aes(x = proj.data, group = Class,fill = Class) )+ 
+#     geom_density(alpha = .5) +
+#     facet_grid(~node.id, scales = "free_y")   +  scale_fill_manual(values= myColors) +
+#     theme(legend.position="none",aspect.ratio = 1) + 
+#     geom_vline( aes(xintercept = cut), linetype = 'dashed', color = 2) + 
+#     xlab("")  
+#   
+#   
+#   
+# }
+# 
+# ggplotly(p1,tooltip=c("fill","x"))
+# 
+# }
 
-
-nn <- data.frame(nn = 1:length(ppf[[8]][[2]][[tr]]$Tree.Struct[,1]))
-densf <- function(x){
-  dat_dens(PPclassOBJ=ppf[[8]][[2]][[tr]],node.id=x,Rule=1)
-}
-
-dat_pl<- apply(nn, 1, densf)  %>%  lapply(data.frame) %>%bind_rows()
-
-
-
-myColors <- brewer.pal(length(unique(ppf[[8]][[2]][[tr]]$origclass)),"Dark2")
-names(myColors) <- levels(dat_pl$Class)
-if( length( unique(dat_pl$node.id ) ) >=3 ){
-p1 <- dat_pl %>% filter(node.id %in% unique(node.id )[1:3] ) %>% 
-  ggplot( aes(x = proj.data, group = Class,fill = Class)) + geom_density(alpha = .5) +
-        facet_grid( ~node.id, scales = 'free') + scale_fill_manual(values= myColors) +
-        theme(legend.position="none", aspect.ratio = 1) + geom_vline(aes(xintercept = cut), 
-             linetype = "dashed",  color = 2 ) + xlab("")  
-
-}else{
-  p1 <-  ggplot(dat_pl, aes(x = proj.data, group = Class,fill = Class) )+ 
-    geom_density(alpha = .5) +
-    facet_grid(~node.id, scales = "free_y")   +  scale_fill_manual(values= myColors) +
-    theme(legend.position="none",aspect.ratio = 1) + 
-    geom_vline( aes(xintercept = cut), linetype = 'dashed', color = 2) + 
-    xlab("")  
+PPtree_dens <- function(ppf, tr, nodes = NULL) {
+  if(is.null(nodes)){
+    nodes <- ppf[[8]][[tr]]$Tree.Struct[ppf[[8]][[tr]]$Tree.Struct[,4]!=0,1]
+  }
+  nn <- data.frame(nn = nodes)
+  densf <- function(x) {
+    dat_dens(PPclassOBJ = ppf[["output.trees"]][[tr]],
+             node.id = x,
+             Rule = 1)
+    
+  }
+  
+  dat_pl <- apply(nn, 1, densf)  %>%  lapply(data.frame) %>% bind_rows()
+  
+  myColors <- brewer.pal(dim(unique(ppf$train[ppf$class.var]))[1], "Dark2")
+  names(myColors) <- levels(ppf$train[ppf$class.var][, 1])
+  dat_pl$Class <- as.factor(dat_pl$Class)
+  
+  if(is.factor(ppf$train[ppf$class.var][, 1])){
+    levels(dat_pl$Class) <-  levels(ppf$train[ppf$class.var][, 1])
+    
+  }else{
+    levels(dat_pl$Class) <-  levels(as.factor(ppf$train[ppf$class.var][, 1]))
+  }
+  
+  p1 <- dat_pl %>% filter(node.id %in%nodes) %>%
+    ggplot( aes(  x = proj.data, group = Class, fill = Class ) ) + 
+    geom_density(alpha = .5) + facet_grid(~ node.id, scales = 'free') + 
+    scale_fill_manual(values = myColors) + geom_vline(aes(xintercept = cut),
+                                                      linetype = "dashed",
+                                                      color = 2) + xlab("")
   
   
-  
+
+    p1 <-  p1 + theme(legend.position = "none",aspect.ratio = 1)
+    ggplotly(p1, tooltip = c("fill", "x"))
+
 }
-
-ggplotly(p1,tooltip=c("fill","x"))
-
-}
-
-
 
 #Mosaic plot Tab 2
-PPtree_mosaic <- function(ppf,tr){
+PPtree_mosaic <- function(ppf,tr, nodes = NULL){
   
   
-nn <- data.frame(nn = 1:length(ppf[[8]][[2]][[tr]]$Tree.Struct[,1]))
+  if(is.null(nodes)){
+    nodes <- ppf[[8]][[tr]]$Tree.Struct[ppf[[8]][[tr]]$Tree.Struct[,4]!=0,1]
+  }
+  nn <- data.frame(nn = nodes)
+  
   densf <- function(x){
-    dat_dens(PPclassOBJ=ppf[[8]][[2]][[tr]],node.id=x,Rule=1)
+    dat_dens(PPclassOBJ=ppf[[8]][[tr]],node.id=x,Rule=1)
   }
 
   dat_pl<- apply(nn, 1, densf)  %>%  lapply(data.frame) %>%bind_rows()
   
   levels(dat_pl$Dir)<-c("Left", "Right")
-  myColors <- brewer.pal(length( unique( ppf[[8]][[2]][[tr]]$origclass ) ), "Dark2")
+  myColors <- brewer.pal(length( unique( ppf[[8]][[tr]]$origclass ) ), "Dark2")
   names(myColors) <- levels(dat_pl$Class)
  
   dat_mosaic <- data.frame( with(dat_pl, table(Class, Dir,node.id) ) )
   
-  if( length( unique(dat_pl$node.id ) ) > 3 ){
-  p1<- dat_mosaic %>% filter(node.id %in% unique(node.id )[1:3] ) %>%
-    ggplot() + geom_mosaic( aes(weight = Freq, x = product(Class, Dir), fill = Class)) + facet_grid(~node.id)+
-    scale_fill_manual(values= myColors)  + theme(legend.position="none", axis.text.x  = element_text(angle=90, vjust=0.5),aspect.ratio = 1) +xlab("Class")
-  }else{
-    p1 <-  ggplot(dat_mosaic ) + 
+ 
+    p1 <- dat_mosaic %>% filter(node.id %in%nodes) %>% ggplot() + 
       geom_mosaic( aes(weight = Freq, x = product(Class,Dir) ,fill = Class))+facet_grid(~node.id)+
       scale_fill_manual(values = myColors) + theme(legend.position="none",axis.text.x  = element_text(angle=90, vjust=0.5),aspect.ratio = 1) +xlab("Class")
-  }
+  
   ggplotly(p1)
 
 }
@@ -159,10 +198,8 @@ ppf_oob_error <- function(ppf, nsplit1) {
   variable <- NULL
   error.cum <- function(ppf, m) {
     l.train <- 1:nrow(ppf$train)
-    index2 <-
-      lapply(attributes(ppf$boot.samp)$indices[1:m], function(x)
-        x + 1)
-    
+    index2 <- lapply(as.numeric(attributes(ppf$boot.samp)$names[1:m]), function(x)
+               x + 1)
     # oob.obs <-
     #   plyr::ldply(index2, function(x)
     #     (!l.train %in% x))
