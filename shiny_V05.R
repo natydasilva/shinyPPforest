@@ -18,13 +18,20 @@ for(i in 1:length(data.sources)){
   load(data.sources[i])
 }
 
+#glass problem
+#leukemia problem ROC curve  Error in roc.default(response, predictor) : No case observation. 
+#lymophoma problem
 
-ppf_crab <- PPforest(data = crab, class = "Type",
-                      size.tr = 1, m = 500, size.p = sqrt(ncol(crab)-1)/(ncol(crab)-1), PPmethod = 'LDA' )
-impo_crab <-   permute_importance2(ppf = ppf_crab)
+#parkinson two class problem with as.matrix(ppf$votes) %*% projct : non-conformable arguments
+ppf_wine <- PPforest(data = wine, class = "Type",
+                      size.tr = 1, m = 500, size.p = sqrt(ncol(wine)-1)/(ncol(wine)-1), PPmethod = 'LDA' )
+impo_wine <- permute_importance2(ppf = ppf_wine)
 
-save(ppf_crab, file="ppf_crab.Rdata")
-save(impo_crab, file="impo_crab.Rdata")
+
+
+
+save(ppf_wine, file="ppf_wine.Rdata")
+save(impo_wine, file="impo_wine.Rdata")
 
 ppf <- ppf3
 impo <- impo3
