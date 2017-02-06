@@ -18,20 +18,20 @@ for(i in 1:length(data.sources)){
   load(data.sources[i])
 }
 
-ppf_image <- PPforest(data = image, class = "Type",
-                      size.tr = 1, m = 500, size.p = sqrt(ncol(image)-1)/(ncol(image)-1), PPmethod = 'LDA' )
-impo_image <- permute_importance2(ppf = ppf_image)
+ppf_NCI60 <- PPforest(data = NCI60, class = "Type",
+                      size.tr = 1, m = 500, size.p = sqrt(ncol(lymphoma)-1)/(ncol(lymphoma)-1), PPmethod = 'LDA' )
+impo_NCI60 <- permute_importance2(ppf = ppf_NCI60)
 
-ppf <- ppf_image
+ppf <- ppf_NCI60
 colcl <- which(colnames(ppf$train)%in%class)
 
-rf_wine <- randomForest(x = ppf$train[,-colcl], y = ppf$train[,colcl] , data = ppf$train, ntree = ppf$n.tree, importance = TRUE,
+rf_NCI60 <- randomForest(x = ppf$train[,-colcl], y = ppf$train[,colcl] , data = ppf$train, ntree = ppf$n.tree, importance = TRUE,
                    proximity = TRUE)
 
 #load("ppf_image.Rdata")
 
-save(rf_wine, file="rf_wine.Rdata")
-#save(impo_image, file="impo_image.Rdata")
+save(ppf_NCI60, file="ppf_NCI60.Rdata")
+save(impo_NCI60, file="impo_NCI60.Rdata")
 
 ppf <- ppf3
 impo <- impo3
@@ -39,7 +39,7 @@ impo <- impo3
 
 ppf <-   ppf_tennis
 impo <-   permute_importance2(ppf = ppf_tennis)
-runAppforest <- function(ppf, imp, class, rf){
+runAppforest <- function(ppf, imp, class, rf, num =FALSE){
 
 #################################
 #             Data              #
@@ -52,13 +52,9 @@ runAppforest <- function(ppf, imp, class, rf){
     if(!is.factor(ppf$train[,colcl] )){
       ppf$train[,colcl] <- as.factor(ppf$train[,colcl])
     }
-rf <- randomForest(x = ppf$train[,-colcl], y = ppf$train[,colcl] , data = ppf$train, ntree = ppf$n.tree, importance = TRUE,
-                   proximity = TRUE)
 
-n.class <- ppf$train %>% select_(ppf$class.var) %>% unique() %>% nrow()
- 
-lev <- ppf$train %>% select_(ppf$class.var) %>%   sapply(levels) %>% as.factor() 
-
+  n.class <- ppf$train %>% select_(ppf$class.var) %>% unique() %>% nrow()
+  lev <- ppf$train %>% select_(ppf$class.var) %>%   sapply(levels) %>% as.factor() 
 
 k = 2
 id <- diag(dim(ppf$train)[1])
@@ -123,7 +119,7 @@ makePairs <- function(dat){
 }
 
 #ternary
-if(length(levels(ppf$train[, colcl]))==2){
+if(length( levels( ppf$train[, colcl] ) ) == 2){
   dat3 <- data.frame(Class = ppf$train[, colcl], ids = 1:nrow(rf.mds$points),
                      proj.vote = as.matrix(ppf$votes) )
   colnames(  dat3)[3:4] <- c( "proj.vote.x", "proj.vote.x.1")
@@ -144,7 +140,7 @@ dat3 <- data.frame(Class = ppf$train[, colcl], ids = 1:nrow(rf.mds$points),
 
 
 ##with 3 or less classes
-empt <-rep(1:nrow(dat3), 3)
+empt <- rep(1:nrow(dat3), 3)
 dat3.empt <- dat3[empt,] %>% mutate(rep = rep(1:3,each=nrow(dat3)))
 if(n.class>3){
 gg1 <-  makePairs(dat3) 
@@ -165,20 +161,21 @@ error.tree <- data_frame(ids = 1:ppf$n.tree, trees = "trees", OOB.error.tree = p
 ###Tab 3
 #rf
 dat.side <- data.frame(ids = 1:nrow(ppf$train), Type = ppf$train[, ppf$class.var], rf$votes, pred = rf$predicted )
+if(num){
 colnames(dat.side)[(as.numeric( unique(as.factor(rf$classes) )) + 2)] <- unique(rf$classes)
-
+}
 dat.side.pl <- dat.side %>% gather(Classvote, Probability, -pred, -ids, -Type)
 colnames(dat.side.pl)[2] <- "Class"
 
 #rfpp
 dat.sidepp <- data.frame( ids = 1:nrow(ppf$train), Type = ppf$train[,ppf$class.var], ppf$votes, pred = ppf$prediction.oob)
+if(num){
 colnames(dat.sidepp)[(as.numeric(unique(ppf$train[,ppf$class.var]))+2)] <-levels(ppf$train[,ppf$class.var])
+}
 dat.sidepp.pl <- dat.sidepp %>% gather(Classvote,Probability,-pred,-ids,-Type)
 colnames(dat.sidepp.pl )[2] <- "Class"
 
 #ROC
-
-
 
 rocf <- function(d) {
   rocky(d$cond,d$Probability)
@@ -253,12 +250,12 @@ ui <-   fluidPage(
         
       ),
       
-      if(n.class>2){
+     # if(n.class>2){
 
         fluidRow(
       column(width = 11,
              plotlyOutput("ternaryplot", height = 400)))
-      }
+      #}
   ),
     
     tabPanel(
@@ -497,7 +494,7 @@ rv <- reactiveValues( data = data.frame(
     yy <- rv$data$ids[rv$data$fill]
   
   
-    if(n.class == 3){
+    if(n.class <= 3){
     p <- ggplot(data = dat3.empt, aes(
         x = proj.vote.x, y = proj.vote.x.1, colour = Class, key = ids
       )) +  geom_blank() + facet_wrap(~rep) + geom_point(data = filter(dat3.empt, rep == 2), size = I(3), alpha = .5) + ylab("") +
