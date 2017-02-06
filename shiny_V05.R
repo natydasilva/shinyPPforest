@@ -48,7 +48,6 @@ runAppforest <- function(ppf, imp, class, rf, num =FALSE){
 #random forest
   colcl <- which(colnames(ppf$train)%in%class)
 
- 
     if(!is.factor(ppf$train[,colcl] )){
       ppf$train[,colcl] <- as.factor(ppf$train[,colcl])
     }
@@ -102,21 +101,71 @@ scale.dat.melt$Variables <- as.numeric(as.factor(scale.dat.melt$var))
 colnames(scale.dat.melt)[1] <- "Class"
 
 ###importance
-makePairs <- function(dat){
-  aux <-dat[ , -c(1, 2)]
-  id <- sample(1:(ncol(aux)), 3)
-  d<-aux[ , id]
+# makePairs <- function(dat){
+#   aux <-dat[ , -c(1, 2)]
+#   id <- sample(1:(ncol(aux)), 3)
+#   d<-aux[ , id]
+#   
+#   grid <- expand.grid(x = 1:ncol(d), y = 1:ncol(d))
+#   grid <- subset(grid, x != y)
+#   all <- do.call("rbind", lapply(1:nrow(grid), function(i) {
+#     xcol <- grid[i, "x"]
+#     ycol <- grid[i, "y"]
+#     data.frame(Class=dat[,1],ids=dat[,2], x = d[, xcol], y = d[, ycol], pair=paste(grid[i,], collapse = '-') )
+#      }))
+#   
+#   all
+# }
+
+
+makePairs <- function(dat, id = c(a, b, c)) {
+  aux <- dat[,-c(1, 2)]
   
-  grid <- expand.grid(x = 1:ncol(d), y = 1:ncol(d))
+  d <- aux[, id]
+  
+  grid <- expand.grid(x = id, y = id)
   grid <- subset(grid, x != y)
   all <- do.call("rbind", lapply(1:nrow(grid), function(i) {
     xcol <- grid[i, "x"]
     ycol <- grid[i, "y"]
-    data.frame(Class=dat[,1],ids=dat[,2], x = d[, xcol], y = d[, ycol], pair=paste(grid[i,], collapse = '-') )
-     }))
+    data.frame(
+      Class = dat[, 1],
+      ids = dat[, 2],
+      x = dat[, xcol+2],
+      y = dat[, ycol+2],
+      pair = paste(grid[i, ], collapse = '-')
+      
+    )
+  }))
   
   all
 }
+
+#ppf PPforest object
+#V1,v2,v3 select the 3 proj directions
+ternarydata <- function(ppf, v1, v2, v3) {
+  n.class <- ppf$train %>% select_(ppf$class.var) %>% unique() %>% nrow()
+  projct <-t(f.helmert(length(unique(ppf$train[, ppf$class.var])))[-1,])
+  
+  dat3 <-
+    data.frame(
+      Class = ppf$train[, ppf$class.var],
+      ids = 1:nrow(ppf$train),
+      proj.vote = as.matrix(ppf$votes) %*% projct
+    )
+  
+  ##with 3 or less classes
+  empt <- rep(1:nrow(dat3), 3)
+  #dat3.empt <- dat3[empt, ] %>% mutate(rep = rep(1:3, each = nrow(dat3)))
+  if (n.class > 3) {
+    gg1 <-  makePairs(dat3, c(v1,  v2, v3))
+  }
+  
+  gg1 <-  makePairs(dat3, id = c(v1, v2, v3))
+  
+  return(gg1)
+}
+
 
 #ternary
 if(length( levels( ppf$train[, colcl] ) ) == 2){
@@ -128,6 +177,74 @@ dat3 <- data.frame(Class = ppf$train[, colcl], ids = 1:nrow(rf.mds$points),
                    proj.vote = as.matrix(ppf$votes) %*% projct)
 }
 
+
+
+f_composition <- function(data) {
+  d <- dim(data)[2]
+  hm <- f.helmert(d)
+  x <- data - matrix(1 / d, dim(data)[1], d)
+  return((x %*% t(hm))[,-1])
+}
+
+simplex <- function(p = 3) {
+  vert <- f_composition(diag(p + 1))
+  colnames(vert) <- paste0("d", 1:ncol(vert))
+  
+  wires <-
+    do.call(expand.grid, list(c(1:nrow(vert)), c(1:nrow(vert))))
+  
+  structure(list(points = vert,
+                 edges = wires[!(wires[, 1] == wires[, 2]),]))
+}
+
+ternaryshell <- function(ppf, sp = length(unique(ppf$train[,ppf$class.var]))-1, dx = 1, dy = 2, v1=1, v2=2, v3=3){
+  s <- simplex(sp)
+  pts <- data.frame(s$points)
+  #pts <- data.frame(s$points[,c(dx,dy)])
+  gg1 <- ternarydata(ppf, v1, v2, v3)
+  
+  edg <- data.frame(x1=pts[,dx][s$edges[,1]], x2=pts[,dx][s$edg[,2]],
+                    y1=pts[,dy][s$edg[,1]], y2=pts[,dy][s$edg[,2]])
+  
+  p1  <- gg1 %>% filter(pair %in% paste(dx,dy, sep="-") ) %>%
+    select(Class, x, y) %>%
+    ggplot(aes(x, y, color = Class)) +
+    geom_segment(data = edg, aes(x = x1, xend = x2,
+                                 y = y1, yend = y2), color = "black" ) +
+    geom_point(size = I(3), alpha = .5) +
+    labs(y = "",  x = "") +
+    theme(legend.position = "none", aspect.ratio = 1) +
+    scale_colour_brewer(type = "qual", palette = "Dark2") +
+    labs(x = paste0("T",dx,""), y = paste0("T",dy,"")) +
+    theme(aspect.ratio=1)
+  
+  p1
+}
+
+
+ternaryshell2 <- function(gg2,ppf, sp = length(unique(ppf$train[,ppf$class.var]))-1, dx = 1, dy = 2, v1=1, v2=2, v3=3){
+  s <- simplex(sp)
+  pts <- data.frame(s$points)
+  #pts <- data.frame(s$points[,c(dx,dy)])
+
+  
+  edg <- data.frame(x1=pts[,dx][s$edges[,1]], x2=pts[,dx][s$edg[,2]],
+                    y1=pts[,dy][s$edg[,1]], y2=pts[,dy][s$edg[,2]])
+  
+  p1  <- gg2 %>% filter(pair %in% paste(dx,dy, sep="-") ) %>%
+    select(Class, x, y) %>%
+    ggplot(aes(x, y, color = Class)) +
+    geom_segment(data = edg, aes(x = x1, xend = x2,
+                                 y = y1, yend = y2), color = "black" ) +
+    geom_point(size = I(3), alpha = .5) +
+    labs(y = "",  x = "") +
+    theme(legend.position = "none", aspect.ratio = 1) +
+    scale_colour_brewer(type = "qual", palette = "Dark2") +
+    labs(x = paste0("T",dx,""), y = paste0("T",dy,"")) +
+    theme(aspect.ratio=1)
+  
+  p1
+}
 # 
 # dat3 <-
 #   data.frame(
@@ -143,7 +260,7 @@ dat3 <- data.frame(Class = ppf$train[, colcl], ids = 1:nrow(rf.mds$points),
 empt <- rep(1:nrow(dat3), 3)
 dat3.empt <- dat3[empt,] %>% mutate(rep = rep(1:3,each=nrow(dat3)))
 if(n.class>3){
-gg1 <-  makePairs(dat3) 
+gg1 <-  makePairs(dat3, c(1,2,3)) 
 }
 ###Tab 2 data
 ##Importance tree
@@ -494,11 +611,11 @@ rv <- reactiveValues( data = data.frame(
     yy <- rv$data$ids[rv$data$fill]
   
   
-    if(n.class <= 3){
+    if(n.class < 3){
     p <- ggplot(data = dat3.empt, aes(
         x = proj.vote.x, y = proj.vote.x.1, colour = Class, key = ids
       )) +  geom_blank() + facet_wrap(~rep) + geom_point(data = filter(dat3.empt, rep == 2), size = I(3), alpha = .5) + ylab("") +
-      xlab("") + theme(legend.position = "none" , aspect.ratio = 1) + ggtitle("Vote matrix ternary plot") +
+      xlab("") + theme(legend.position = "none" , aspect.ratio = 1) + ggtitle("Vote matrix ") +
       scale_colour_brewer(type = "qual",palette = "Dark2")
     
     if (length(yy) > 0) {
@@ -513,28 +630,31 @@ rv <- reactiveValues( data = data.frame(
      }
     }else{
       
-      p <- gg1 %>% filter(pair %in% c("2-1","3-1","3-2")) %>% 
-        ggplot(aes(x, y, color = Class,key = ids)) + geom_point( size = I(3), alpha = .5) + 
-        facet_wrap(~pair) + labs(y = "",  x = "") + theme(legend.position = "none", aspect.ratio = 1) + ggtitle("Vote matrix ternary plot") +
-        scale_colour_brewer(type = "qual",palette = "Dark2")
+     
+      t1 <- ternaryshell(ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 2)
+      t2 <- ternaryshell(ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 3)
+      t3 <- ternaryshell(ppf, length(unique(ppf$train[,ppf$class.var]))-1, 2, 3)
       
+
       if (length(yy) > 0) {
         dat33 <- dat3 %>% dplyr::filter(ids %in% yy)
         gg2 <-  gg1 %>% dplyr::filter(ids %in% yy)
      
-     p <- gg1 %>% filter(pair %in% c("2-1","3-1","3-2")) %>% 
-       ggplot(aes(x, y, color = Class,key = ids))+geom_point( size = I(3), alpha = .1) + 
-       facet_wrap(~pair) + ylab("") + xlab("") + theme(legend.position = "none", aspect.ratio=1) + ggtitle("Vote matrix ternary plot") +
-       scale_colour_brewer(type = "qual",palette = "Dark2")
-     
+        t1 <- ternaryshell2(gg2,ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 2)
+        t2 <- ternaryshell2(gg2,ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 3)
+        t3 <- ternaryshell2(gg2,ppf, length(unique(ppf$train[,ppf$class.var]))-1, 2, 3)
+        
+ 
+
+        
      p <- p + geom_point(data = gg2 %>% filter(pair %in% c("2-1","3-1","3-2")), 
                           size = I(3)) 
        }
     }
     
  
-    ggplotly(p,tooltip = c("colour","x","y","key")) %>% layout(dragmode = "select")
-    
+    #ggplotly(p,tooltip = c("colour","x","y","key")) %>% layout(dragmode = "select")
+    subplot(t1,t2,t3)
     
     })
   
