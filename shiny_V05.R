@@ -13,12 +13,12 @@ library(ggmosaic)
 library(PPforest)
 source("shinyplots.R")
 
-data.sources = list.files(pattern="*.RData")
+data.sources = list.files(pattern="*.Rdata")
 for(i in 1:length(data.sources)){
   load(data.sources[i])
 }
 
-#glass problem
+#glass problem OK
 #leukemia problem ROC curve  Error in roc.default(response, predictor) : No case observation. 
 #lymophoma problem
 
@@ -37,7 +37,7 @@ ppf <- ppf3
 impo <- impo3
 
 
-ppf<-   ppf_tennis
+ppf <-   ppf_tennis
 impo <-   permute_importance2(ppf = ppf_tennis)
 runAppforest <- function(ppf, imp, class){
 
@@ -47,7 +47,6 @@ runAppforest <- function(ppf, imp, class){
 
 #random forest
   colcl <- which(colnames(ppf$train)%in%class)
-  
 
  
     if(!is.factor(ppf$train[,colcl] )){
@@ -124,17 +123,22 @@ makePairs <- function(dat){
 }
 
 #ternary
+if(length(levels(ppf$train[, colcl]))==2){
+  dat3 <- data.frame(Class = ppf$train[, colcl], ids = 1:nrow(rf.mds$points),
+                     proj.vote = as.matrix(ppf$votes) )
+  colnames(  dat3)[3:4] <- c( "proj.vote.x", "proj.vote.x.1")
+}else{
 dat3 <- data.frame(Class = ppf$train[, colcl], ids = 1:nrow(rf.mds$points),
                    proj.vote = as.matrix(ppf$votes) %*% projct)
+}
 
-
-
-dat3 <-
-  data.frame(
-    Class = ppf$train[, 1],
-    ids = 1:length(ppf$train[, 1]),
-    proj.vote = as.matrix(ppf$votes) %*% projct
-  )
+# 
+# dat3 <-
+#   data.frame(
+#     Class = ppf$train[, 1],
+#     ids = 1:length(ppf$train[, 1]),
+#     proj.vote = as.matrix(ppf$votes) %*% projct
+#   )
 
 
 
@@ -161,12 +165,14 @@ error.tree <- data_frame(ids = 1:ppf$n.tree, trees = "trees", OOB.error.tree = p
 ###Tab 3
 #rf
 dat.side <- data.frame(ids = 1:nrow(ppf$train), Type = ppf$train[, ppf$class.var], rf$votes, pred = rf$predicted )
+colnames(dat.side)[(as.numeric( unique(as.factor(rf$classes) )) + 2)] <- unique(rf$classes)
 
 dat.side.pl <- dat.side %>% gather(Classvote, Probability, -pred, -ids, -Type)
 colnames(dat.side.pl)[2] <- "Class"
 
 #rfpp
 dat.sidepp <- data.frame( ids = 1:nrow(ppf$train), Type = ppf$train[,ppf$class.var], ppf$votes, pred = ppf$prediction.oob)
+colnames(dat.sidepp)[(as.numeric(unique(ppf$train[,ppf$class.var]))+2)] <-levels(ppf$train[,ppf$class.var])
 dat.sidepp.pl <- dat.sidepp %>% gather(Classvote,Probability,-pred,-ids,-Type)
 colnames(dat.sidepp.pl )[2] <- "Class"
 
@@ -178,8 +184,8 @@ rocf <- function(d) {
   rocky(d$cond,d$Probability)
 }
 dat.rocpprf <- dat.sidepp.pl %>% group_by(Classvote) %>%
-  mutate(cond = Class %in% Classvote)  %>%
-  ungroup() %>%  group_by(Classvote) %>% do(rocf(.))
+  mutate(cond = Class %in% Classvote)  %>%  do(rocf(.))
+  #ungroup() %>%  group_by(Classvote) %>% 
 
 
 dat.rocpprf$Classvote <- as.factor(dat.rocpprf$Classvote)
@@ -246,10 +252,13 @@ ui <-   fluidPage(
         )
         
       ),
+      
+      if(n.class>2){
 
-    fluidRow(
+        fluidRow(
       column(width = 11,
              plotlyOutput("ternaryplot", height = 400)))
+      }
   ),
     
     tabPanel(
@@ -340,11 +349,17 @@ ui <-   fluidPage(
 #############################
 server <- function(input, output) {
  
+
+    if(length(levels(ppf$train[, colcl]))==2){
+      prvote <-  as.matrix(ppf$votes) 
+    }else{
+      prvote <-  as.matrix(ppf$votes) %*% projct
+    }
 rv <- reactiveValues( data = data.frame(
         MDS1 = rf.mds$points[,1], MDS2 = rf.mds$points[,2],
         Class = ppf$train[, 1],ids = 1:nrow(rf.mds$points),
         fill = logical(nrow(ppf$train ) ),proj.vote =
-        as.matrix(ppf$votes) %*% projct,
+       prvote,
         vote = ppf$votes, pred = ppf$prediction.oob, scale.dat ) )
 
   updateRV <- function(selected) {
@@ -481,7 +496,8 @@ rv <- reactiveValues( data = data.frame(
  output$ternaryplot <- renderPlotly({
     yy <- rv$data$ids[rv$data$fill]
   
-    if(n.class <= 3){
+  
+    if(n.class == 3){
     p <- ggplot(data = dat3.empt, aes(
         x = proj.vote.x, y = proj.vote.x.1, colour = Class, key = ids
       )) +  geom_blank() + facet_wrap(~rep) + geom_point(data = filter(dat3.empt, rep == 2), size = I(3), alpha = .5) + ylab("") +
@@ -518,6 +534,8 @@ rv <- reactiveValues( data = data.frame(
                           size = I(3)) 
        }
     }
+    
+ 
     ggplotly(p,tooltip = c("colour","x","y","key")) %>% layout(dragmode = "select")
     
     
