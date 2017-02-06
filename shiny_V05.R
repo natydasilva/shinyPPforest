@@ -18,20 +18,20 @@ for(i in 1:length(data.sources)){
   load(data.sources[i])
 }
 
-ppf_NCI60 <- PPforest(data = NCI60, class = "Type",
-                      size.tr = 1, m = 500, size.p = sqrt(ncol(lymphoma)-1)/(ncol(lymphoma)-1), PPmethod = 'LDA' )
-impo_NCI60 <- permute_importance2(ppf = ppf_NCI60)
+ppf_fish <- PPforest(data = fishcatch, class = "Type",
+                      size.tr = 1, m = 500, size.p = sqrt(ncol(fishcatch)-1)/(ncol(fishcatch)-1), PPmethod = 'LDA' )
+impo_fish<- permute_importance2(ppf = ppf_fish)
 
-ppf <- ppf_NCI60
+ppf <- ppf_fish
 colcl <- which(colnames(ppf$train)%in%class)
 
-rf_NCI60 <- randomForest(x = ppf$train[,-colcl], y = ppf$train[,colcl] , data = ppf$train, ntree = ppf$n.tree, importance = TRUE,
+rf_fish <- randomForest(x = ppf$train[,-colcl], y = as.factor(ppf$train[,colcl] ), data = ppf$train, ntree = ppf$n.tree, importance = TRUE,
                    proximity = TRUE)
 
 #load("ppf_image.Rdata")
 
-save(ppf_NCI60, file="ppf_NCI60.Rdata")
-save(impo_NCI60, file="impo_NCI60.Rdata")
+save(rf_fish, file="rf_fish.Rdata")
+save(impo_fish, file="impo_fish.Rdata")
 
 ppf <- ppf3
 impo <- impo3
