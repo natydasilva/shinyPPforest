@@ -18,27 +18,27 @@ for(i in 1:length(data.sources)){
   load(data.sources[i])
 }
 
-ppf_fish <- PPforest(data = fishcatch, class = "Type",
-                      size.tr = 1, m = 500, size.p = sqrt(ncol(fishcatch)-1)/(ncol(fishcatch)-1), PPmethod = 'LDA' )
-impo_fish<- permute_importance2(ppf = ppf_fish)
-
-ppf <- ppf_fish
-colcl <- which(colnames(ppf$train)%in%class)
-
-rf_fish <- randomForest(x = ppf$train[,-colcl], y = as.factor(ppf$train[,colcl] ), data = ppf$train, ntree = ppf$n.tree, importance = TRUE,
-                   proximity = TRUE)
+# ppf_fish <- PPforest(data = fishcatch, class = "Type",
+#                       size.tr = 1, m = 500, size.p = sqrt(ncol(fishcatch)-1)/(ncol(fishcatch)-1), PPmethod = 'LDA' )
+# impo_fish<- permute_importance2(ppf = ppf_fish)
+# 
+# ppf <- ppf_fish
+# colcl <- which(colnames(ppf$train)%in%class)
+# 
+# rf_fish <- randomForest(x = ppf$train[,-colcl], y = as.factor(ppf$train[,colcl] ), data = ppf$train, ntree = ppf$n.tree, importance = TRUE,
+#                    proximity = TRUE)
 
 #load("ppf_image.Rdata")
 
-save(rf_fish, file="rf_fish.Rdata")
-save(impo_fish, file="impo_fish.Rdata")
+# save(rf_fish, file="rf_fish.Rdata")
+# save(impo_fish, file="impo_fish.Rdata")
 
-ppf <- ppf3
-impo <- impo3
+# ppf <- ppf3
+# impo <- impo3
 
 
-ppf <-   ppf_tennis
-impo <-   permute_importance2(ppf = ppf_tennis)
+# ppf <-   ppf_tennis
+# impo <-   permute_importance2(ppf = ppf_tennis)
 runAppforest <- function(ppf, imp, class, rf, num =FALSE){
 
 #################################

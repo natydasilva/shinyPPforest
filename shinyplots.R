@@ -109,7 +109,7 @@ dat_dens <- function(PPclassOBJ, node.id, Rule, legend = TRUE, std = TRUE,
 
 PPtree_dens <- function(ppf, tr, nodes = NULL) {
   if(is.null(nodes)){
-    nodes <- ppf[[8]][[tr]]$Tree.Struct[ppf[[8]][[tr]]$Tree.Struct[,4]!=0,1]
+    nodes <- ppf[[8]][[tr]]$Tree.Struct[ppf[[8]][[tr]]$Tree.Struct[,4]!=0,1][1:3]
   }
   nn <- data.frame(nn = nodes)
   densf <- function(x) {
@@ -151,7 +151,7 @@ PPtree_mosaic <- function(ppf,tr, nodes = NULL){
   
   
   if(is.null(nodes)){
-    nodes <- ppf[[8]][[tr]]$Tree.Struct[ppf[[8]][[tr]]$Tree.Struct[,4]!=0,1]
+    nodes <- ppf[[8]][[tr]]$Tree.Struct[ppf[[8]][[tr]]$Tree.Struct[,4]!=0,1][1:3]
   }
   nn <- data.frame(nn = nodes)
   
