@@ -18,20 +18,20 @@ for(i in 1:length(data.sources)){
   load(data.sources[i])
 }
 
-#glass problem OK
-#leukemia problem ROC curve  Error in roc.default(response, predictor) : No case observation. 
-#lymophoma problem
+ppf_image <- PPforest(data = image, class = "Type",
+                      size.tr = 1, m = 500, size.p = sqrt(ncol(image)-1)/(ncol(image)-1), PPmethod = 'LDA' )
+impo_image <- permute_importance2(ppf = ppf_image)
 
-#parkinson two class problem with as.matrix(ppf$votes) %*% projct : non-conformable arguments
-ppf_wine <- PPforest(data = wine, class = "Type",
-                      size.tr = 1, m = 500, size.p = sqrt(ncol(wine)-1)/(ncol(wine)-1), PPmethod = 'LDA' )
-impo_wine <- permute_importance2(ppf = ppf_wine)
+ppf <- ppf_image
+colcl <- which(colnames(ppf$train)%in%class)
 
+rf_wine <- randomForest(x = ppf$train[,-colcl], y = ppf$train[,colcl] , data = ppf$train, ntree = ppf$n.tree, importance = TRUE,
+                   proximity = TRUE)
 
+#load("ppf_image.Rdata")
 
-
-save(ppf_wine, file="ppf_wine.Rdata")
-save(impo_wine, file="impo_wine.Rdata")
+save(rf_wine, file="rf_wine.Rdata")
+#save(impo_image, file="impo_image.Rdata")
 
 ppf <- ppf3
 impo <- impo3
@@ -39,7 +39,7 @@ impo <- impo3
 
 ppf <-   ppf_tennis
 impo <-   permute_importance2(ppf = ppf_tennis)
-runAppforest <- function(ppf, imp, class){
+runAppforest <- function(ppf, imp, class, rf){
 
 #################################
 #             Data              #
