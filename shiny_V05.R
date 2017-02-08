@@ -39,7 +39,7 @@ for(i in 1:length(data.sources)){
 
 # ppf <-   ppf_tennis
 # impo <-   permute_importance2(ppf = ppf_tennis)
-runAppforest <- function(ppf, imp, class, rf, num =FALSE){
+runAppforest <- function(ppf, imp, class, rf, num = FALSE){
 
 #################################
 #             Data              #
@@ -101,22 +101,6 @@ scale.dat.melt$Variables <- as.numeric(as.factor(scale.dat.melt$var))
 colnames(scale.dat.melt)[1] <- "Class"
 
 ###importance
-# makePairs <- function(dat){
-#   aux <-dat[ , -c(1, 2)]
-#   id <- sample(1:(ncol(aux)), 3)
-#   d<-aux[ , id]
-#   
-#   grid <- expand.grid(x = 1:ncol(d), y = 1:ncol(d))
-#   grid <- subset(grid, x != y)
-#   all <- do.call("rbind", lapply(1:nrow(grid), function(i) {
-#     xcol <- grid[i, "x"]
-#     ycol <- grid[i, "y"]
-#     data.frame(Class=dat[,1],ids=dat[,2], x = d[, xcol], y = d[, ycol], pair=paste(grid[i,], collapse = '-') )
-#      }))
-#   
-#   all
-# }
-
 
 makePairs <- function(dat, id = c(a, b, c)) {
   aux <- dat[,-c(1, 2)]
@@ -145,7 +129,7 @@ makePairs <- function(dat, id = c(a, b, c)) {
 #V1,v2,v3 select the 3 proj directions
 ternarydata <- function(ppf, v1, v2, v3) {
   n.class <- ppf$train %>% select_(ppf$class.var) %>% unique() %>% nrow()
-  projct <-t(f.helmert(length(unique(ppf$train[, ppf$class.var])))[-1,])
+  projct <- t(f.helmert( length(unique(ppf$train[, ppf$class.var]) ) )[-1,])
   
   dat3 <-
     data.frame(
@@ -158,10 +142,10 @@ ternarydata <- function(ppf, v1, v2, v3) {
   empt <- rep(1:nrow(dat3), 3)
   #dat3.empt <- dat3[empt, ] %>% mutate(rep = rep(1:3, each = nrow(dat3)))
   if (n.class > 3) {
-    gg1 <-  makePairs(dat3, c(v1,  v2, v3))
+    gg1 <-  makePairs(dat3, c(v1,  v2, v3))  %>% mutate(idspr =paste(ids,pair, sep=""))
   }
   
-  gg1 <-  makePairs(dat3, id = c(v1, v2, v3))
+  gg1 <-  makePairs(dat3, id = c(v1, v2, v3)) %>% mutate(idspr =paste(ids,pair, sep=""))
   
   return(gg1)
 }
@@ -200,17 +184,16 @@ simplex <- function(p = 3) {
 ternaryshell <- function(ppf, sp = length(unique(ppf$train[,ppf$class.var]))-1, dx = 1, dy = 2, v1=1, v2=2, v3=3){
   s <- simplex(sp)
   pts <- data.frame(s$points)
-  #pts <- data.frame(s$points[,c(dx,dy)])
-  gg1 <- ternarydata(ppf, v1, v2, v3)
+ 
+  gg1 <- ternarydata(ppf, v1, v2, v3) %>% mutate(idspr =paste(ids,pair, sep=""))
   
   edg <- data.frame(x1=pts[,dx][s$edges[,1]], x2=pts[,dx][s$edg[,2]],
                     y1=pts[,dy][s$edg[,1]], y2=pts[,dy][s$edg[,2]])
   
   p1  <- gg1 %>% filter(pair %in% paste(dx,dy, sep="-") ) %>%
-    select(Class, x, y) %>%
-    ggplot(aes(x, y, color = Class)) +
+    ggplot(aes(x, y, color = Class, key = ids)) +
     geom_segment(data = edg, aes(x = x1, xend = x2,
-                                 y = y1, yend = y2), color = "black" ) +
+                                 y = y1, yend = y2, key = NULL), color = "black") +
     geom_point(size = I(3), alpha = .5) +
     labs(y = "",  x = "") +
     theme(legend.position = "none", aspect.ratio = 1) +
@@ -222,45 +205,36 @@ ternaryshell <- function(ppf, sp = length(unique(ppf$train[,ppf$class.var]))-1, 
 }
 
 
-ternaryshell2 <- function(gg2,ppf, sp = length(unique(ppf$train[,ppf$class.var]))-1, dx = 1, dy = 2, v1=1, v2=2, v3=3){
+ternaryshell2 <- function(gg1, gg2, ppf, sp = length(unique(ppf$train[,ppf$class.var]))-1, dx = 1, dy = 2, v1=1, v2=2, v3=3){
   s <- simplex(sp)
   pts <- data.frame(s$points)
-  #pts <- data.frame(s$points[,c(dx,dy)])
-
+ 
+  edg <- data.frame(x1 = pts[,dx][s$edges[,1]], x2 = pts[,dx][s$edg[,2]],
+                    y1 = pts[,dy][s$edg[,1]], y2 = pts[,dy][s$edg[,2]])
   
-  edg <- data.frame(x1=pts[,dx][s$edges[,1]], x2=pts[,dx][s$edg[,2]],
-                    y1=pts[,dy][s$edg[,1]], y2=pts[,dy][s$edg[,2]])
-  
-  p1  <- gg2 %>% filter(pair %in% paste(dx,dy, sep="-") ) %>%
-    select(Class, x, y) %>%
-    ggplot(aes(x, y, color = Class)) +
+  p1  <- gg1 %>% filter(pair %in% paste(dx,dy, sep="-") ) %>%
+    ggplot(aes(x, y, color = Class, key =ids)) +
     geom_segment(data = edg, aes(x = x1, xend = x2,
-                                 y = y1, yend = y2), color = "black" ) +
-    geom_point(size = I(3), alpha = .5) +
+                                 y = y1, yend = y2, key =NULL ), color = "black") +
+    geom_point(size = I(3), alpha = .1) +
     labs(y = "",  x = "") +
     theme(legend.position = "none", aspect.ratio = 1) +
     scale_colour_brewer(type = "qual", palette = "Dark2") +
     labs(x = paste0("T",dx,""), y = paste0("T",dy,"")) +
-    theme(aspect.ratio=1)
+    theme(aspect.ratio = 1)
   
-  p1
+  p1 +  geom_point(data = gg2 %>% filter(pair %in% paste(dx,dy, sep = "-") ), aes(x, y, color = Class, key =ids), size = I(3)) 
 }
-# 
-# dat3 <-
-#   data.frame(
-#     Class = ppf$train[, 1],
-#     ids = 1:length(ppf$train[, 1]),
-#     proj.vote = as.matrix(ppf$votes) %*% projct
-#   )
+
 
 
 
 
 ##with 3 or less classes
 empt <- rep(1:nrow(dat3), 3)
-dat3.empt <- dat3[empt,] %>% mutate(rep = rep(1:3,each=nrow(dat3)))
-if(n.class>3){
-gg1 <-  makePairs(dat3, c(1,2,3)) 
+dat3.empt <- dat3[empt,] %>% mutate(rep = rep(1:3, each=nrow(dat3)))
+if(n.class>=3){
+gg1 <-  makePairs(dat3, c(1,2,3))%>% mutate(idspr = paste(ids,pair, sep="")) 
 }
 ###Tab 2 data
 ##Importance tree
@@ -330,6 +304,8 @@ oob.pl <- ppf_oob_error(ppf, nsplit1 = round(nrow(ppf$train)/13) )
 myColors <- c("#000000", brewer.pal(length(unique(ppf$train[,ppf$class.var])),"Dark2"))
 names(myColors) <- levels(dat_rf$Class)
 
+myColorsCL <- brewer.pal(length(unique(ppf$train[,ppf$class.var])),"Dark2")
+names(myColorsCL) <- levels(dat_rf$Class)
 #imporf
 aux <- data.frame(rf$importance)
 imp.pl <- data.frame(nm = rownames(rf$importance),imp = aux[,"MeanDecreaseAccuracy"]) %>% arrange(imp)
@@ -482,16 +458,15 @@ rv <- reactiveValues( data = data.frame(
     rv$data$fill <- fill
   }
   
-  
-  observeEvent(event_data("plotly_selected"), {
+  observeEvent(event_data("plotly_selected"),{
     selected <- rv$data$ids %in% event_data("plotly_selected")$key
     updateRV(selected)
   })
   
   
-  observeEvent(event_data("plotly_click"), {
+  observeEvent(event_data("plotly_click"),{
     k <- event_data("plotly_click")$key
-    if (any(k %in% unique(rv$data$ids))) {
+    if (any(k %in% unique(rv$data$ids))){
       selected <- rv$data$ids %in% k
     }
     
@@ -616,45 +591,47 @@ rv <- reactiveValues( data = data.frame(
         x = proj.vote.x, y = proj.vote.x.1, colour = Class, key = ids
       )) +  geom_blank() + facet_wrap(~rep) + geom_point(data = filter(dat3.empt, rep == 2), size = I(3), alpha = .5) + ylab("") +
       xlab("") + theme(legend.position = "none" , aspect.ratio = 1) + ggtitle("Vote matrix ") +
+      #scale_color_manual(values = myColorsCL)
       scale_colour_brewer(type = "qual",palette = "Dark2")
-    
+      
     if (length(yy) > 0) {
       dat33 <- dat3.empt %>% dplyr::filter(ids %in% yy)
       p <- ggplot(data = dat3.empt, aes( x = proj.vote.x, y = proj.vote.x.1, 
-                                       colour = Class,key = ids)) + 
+                                       colour = Class, key = ids)) + 
         geom_blank() + facet_wrap(~rep) + geom_point(data = filter(dat3.empt, rep == 2), size = I(3), alpha = .1) + ylab("") + xlab("") + 
            theme(legend.position = "none", aspect.ratio = 1) + ggtitle("Vote matrix ternary plot") +
            scale_colour_brewer(type = "qual",palette = "Dark2")
-      
+        #scale_color_manual(values = myColorsCL)
       p <- p + geom_point(data = filter(dat33, rep==2), size = I(3)) 
-     }
+    }
+    ggplotly(p,tooltip = c("colour","x","y","key")) %>% layout(dragmode = "select")
+    
     }else{
-      
-     
+    
       t1 <- ternaryshell(ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 2)
       t2 <- ternaryshell(ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 3)
       t3 <- ternaryshell(ppf, length(unique(ppf$train[,ppf$class.var]))-1, 2, 3)
       
-
       if (length(yy) > 0) {
         dat33 <- dat3 %>% dplyr::filter(ids %in% yy)
-        gg2 <-  gg1 %>% dplyr::filter(ids %in% yy)
+        #gg1 <- ternarydata(ppf, 1, 2, 3)
+        gg2 <-  gg1 %>%  dplyr::filter(ids %in% c(1,2,30))
      
-        t1 <- ternaryshell2(gg2,ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 2)
-        t2 <- ternaryshell2(gg2,ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 3)
-        t3 <- ternaryshell2(gg2,ppf, length(unique(ppf$train[,ppf$class.var]))-1, 2, 3)
+        t1 <- ternaryshell2(gg1, gg2,ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 2)
+        t2 <- ternaryshell2(gg1, gg2, ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 3)
+        t3 <- ternaryshell2(gg1, gg2, ppf, length(unique(ppf$train[,ppf$class.var]))-1, 2, 3)
         
  
 
         
-     p <- p + geom_point(data = gg2 %>% filter(pair %in% c("2-1","3-1","3-2")), 
-                          size = I(3)) 
-       }
+     # p <- p + geom_point(data = gg2 %>% filter(pair %in% c("2-1","3-1","3-2")), 
+     #                      size = I(3)) 
+      }
+      subplot(t1,t2,t3)
     }
     
  
-    #ggplotly(p,tooltip = c("colour","x","y","key")) %>% layout(dragmode = "select")
-    subplot(t1,t2,t3)
+      subplot(t1,t2,t3)
     
     })
   
