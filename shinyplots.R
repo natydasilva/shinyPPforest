@@ -217,10 +217,13 @@ ppf_oob_error <- function(ppf, nsplit1) {
 }
 
 #load data
-data.sources = list.files(pattern="*.Rdata")
-for(i in 1:length(data.sources)){
-  load( data.sources[i] )
-}
+# data.sources = list.files(pattern="*.Rdata")
+# for(i in 1:length(data.sources)){
+#   load( data.sources[i] )
+# }
+load("impo_fish.Rdata")
+load("ppf_fish.Rdata")
+load("rf_fish.Rdata")
 
 # cosas que tuve que agregar porque no encuentra el objeto
 tr <- 494
@@ -300,7 +303,7 @@ scale.dat.melt$Variables <- as.numeric(as.factor(scale.dat.melt$var))
 colnames(scale.dat.melt)[1] <- "Class"
 
 ###importance
-
+#impo <- c("Permuted", "PPforest importance")
 makePairs <- function(dat, id = c(a, b, c)) {
   aux <- dat[,-c(1, 2)]
   
