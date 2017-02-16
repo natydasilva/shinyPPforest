@@ -38,7 +38,7 @@ shinyUI(fluidPage(
   
   tabsetPanel(
     tabPanel(
-      "Case level",
+      "Individual cases",
       # fluidRow(column(width = 12,sidebarPanel(
       #       selectizeInput(
       #         'clid', 'Select Class', as.character(lev) , selected = lev,multiple =
@@ -75,7 +75,7 @@ shinyUI(fluidPage(
     ,
 
     tabPanel(
-      "Individual mode level",
+      "Models",
       fluidRow(
         column(width = 7,
                plotlyOutput("importancetree",height = 500)), column(
@@ -113,7 +113,7 @@ shinyUI(fluidPage(
     )
     ,
     tabPanel(
-      "Ensemble level I",
+      "Performance comparison",
       fluidRow(column(width = 12,sidebarPanel(
         selectizeInput(
           'xcol', 'Select Class', as.character(lev) , selected = lev,multiple =

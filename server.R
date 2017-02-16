@@ -167,7 +167,7 @@ shinyServer( function(input, output){
     p <- ggplot(data = sidepl, aes(classpred, Probability, colour = Class, key = ids)) + 
       geom_jitter(height = 0, size = I(3), alpha = .5) +
       theme(legend.position = "none", axis.text.x  = element_text(angle = 45, vjust = 0.5), aspect.ratio = 1) +
-      labs(x = "Class", title = "Side by side plot") + scale_colour_brewer(type = "qual", palette = "Dark2")
+      labs(x = "Class", title = "Side by side plot", y = "Proportion") + scale_colour_brewer(type = "qual", palette = "Dark2")
     
     if (length(yy) > 0) {
       dat <- sidepl %>% dplyr::filter(!ids %in% yy)
@@ -175,7 +175,7 @@ shinyServer( function(input, output){
       p <- ggplot(data = dat, aes(classpred, Probability, colour = Class, key = ids)) + 
         geom_jitter(height = 0, size = I(3), alpha = .1) +
         theme(legend.position = "none",axis.text.x  = element_text(angle = 45, vjust = 0.5) , aspect.ratio = 1) +
-        labs(x = "Class", title = "Side by side plot") + scale_colour_brewer(type = "qual", palette = "Dark2")
+        labs(x = "Class", title = "Side by side plot",  y = "Proportion") + scale_colour_brewer(type = "qual", palette = "Dark2")
       
       p <- p + geom_jitter( height = 0, data = dat_fil, size =I(3)) 
     }
@@ -385,7 +385,7 @@ shinyServer( function(input, output){
       p <- ggplot(data = dat.sidepp.pl, aes(x = Classvote, y = Probability, colour = Class, key = ids) ) +
         geom_jitter(height = 0, size = I(3), alpha = .5) +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 45, vjust = 0.5), aspect.ratio = 1) +
-        labs(x = "Class", title = "Side by side plot PPforest") + scale_colour_brewer(type = "qual",palette =
+        labs(x = "Class", title = "Side by side plot PPforest",  y = "Proportion") + scale_colour_brewer(type = "qual",palette =
                                                                                         "Dark2")
     }
     if (length(selectedData( ) ) != length(unique(ppf$train[,ppf$class.var] ))) {
@@ -395,7 +395,7 @@ shinyServer( function(input, output){
       p <- ggplot(data = dat, aes(Classvote, Probability, colour = Class, key = ids)) +
         geom_jitter(height = 0, size = I(3), alpha = .1) +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 45, vjust = 0.5), aspect.ratio = 1) +
-        labs(x = "Class", title = "Side by side plot random forest") + scale_colour_brewer(type = "qual",palette =
+        labs(x = "Class", title = "Side by side plot random forest",  y = "Proportion") + scale_colour_brewer(type = "qual",palette =
                                                                                              "Dark2")
       p <- p + geom_jitter( height = 0, data = dat_fil, alpha = .5, size = I(3))
 
@@ -412,7 +412,7 @@ shinyServer( function(input, output){
       p <- ggplot(data = dat.side.pl, aes(Classvote, Probability, colour = Class, key = ids) ) +
         geom_jitter(height = 0, size = I(3), alpha = .5) +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 45, vjust = 0.5), aspect.ratio = 1) +
-        labs(x = "Class", title = "Side by side plot random forest") + scale_colour_brewer(type = "qual",palette =
+        labs(x = "Class", title = "Side by side plot random forest",  y = "Proportion") + scale_colour_brewer(type = "qual",palette =
                                                                                              "Dark2")
 
     }
@@ -423,7 +423,7 @@ shinyServer( function(input, output){
         ggplot(data = dat, aes(Classvote, Probability, colour = Class, key = ids)) +
         geom_jitter(height = 0, size = I(3), alpha = .1) +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 45, vjust = 0.5), aspect.ratio = 1) +
-        labs(x = "Class", title = "Side by side plot random forest")  + scale_colour_brewer(type = "qual",palette =
+        labs(x = "Class", title = "Side by side plot random forest", y = "Proportion")  + scale_colour_brewer(type = "qual",palette =
                                                                                               "Dark2")
       p <-
         p + geom_jitter( height = 0,data = dat_fil, size = I(3), alpha = .5
