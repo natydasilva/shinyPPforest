@@ -488,7 +488,7 @@ dat.rocpprf <- dat.sidepp.pl %>% group_by(Classvote) %>%
 
 dat.rocpprf$Classvote <- as.factor(dat.rocpprf$Classvote)
 
-# me parece que esta repetido esto .... 
+
 if(num){
 dat.rocrf <- dat.side.pl %>%group_by(Classvote) %>%
   mutate(cond = Class == Classvote) %>% do(rocf(.))
@@ -497,6 +497,10 @@ dat.rocrf <- dat.side.pl %>%group_by(Classvote) %>%
     mutate(cond = Class %in% Classvote) %>% do(rocf(.))
 }
 dat.rocrf$Classvote <- as.factor(dat.rocrf$Classvote)
+
+
+# predictions <- as.numeric(predict(pprf, iris, type = 'response'))
+# multiclass.roc(iris$Species, predictions)
 
 
 #oob error data rf
