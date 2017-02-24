@@ -13,6 +13,7 @@ library(devtools)
 library(PPtreeViz)
 library(devtools)
 
+
 #install_github("natydasilva/PPforest")
 library(PPforest)
 source("shinyplots.R")
@@ -94,6 +95,11 @@ shinyServer( function(input, output){
   })
   
   
+  selectedparopt <- reactive({
+    input$paropt
+  })
+  
+  
   ############################
   #           TAB1           #
   ############################
@@ -109,6 +115,7 @@ shinyServer( function(input, output){
   output$parallel <- renderPlotly({
     yy <- rv$data$ids[rv$data$fill]
     
+    if(selectedparopt()%in%"Parallel"){
     p <- ggplot(scale.dat.melt, aes(x = Variables, y = Value,
                                     group = ids, key = ids, colour = Class, var = var)) +
       geom_line(alpha = 0.3) + scale_x_discrete(limits = levels(as.factor(scale.dat.melt$var)), expand = c(0.01,0.01)) +
@@ -124,6 +131,26 @@ shinyServer( function(input, output){
         scale_colour_brewer(type = "qual",palette = "Dark2")
       
       p <- p + geom_line(data = dat) 
+      }
+    }else{
+      p <-  scale.dat.melt2 %>% arrange(Variables) %>%ggplot( aes(x = Variables, y = Value,
+                                                            group = ids, key = ids, colour = Class, var = var)) +
+        geom_line(alpha = 0.3) + scale_x_discrete(limits = levels(as.factor(scale.dat.melt$var))[sample(length(levels(as.factor(scale.dat.melt$var))))], expand = c(0.01,0.01)) +
+        ggtitle("Data parallel plot ") + theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5)) +
+        scale_colour_brewer(type = "qual", palette = "Dark2")
+    
+      
+      if (length(yy) > 0) {
+        dat <-   scale.dat.melt2 %>% arrange(Variables)%>% dplyr::filter(ids %in% yy)
+        p <- scale.dat.melt2 %>% arrange(Variables)%>%ggplot( aes(x = Variables, y = Value,
+                                                                  group = ids, key = ids, colour = Class, var = var)) +
+          geom_line(alpha = 0.3) + scale_x_discrete(limits = levels(as.factor(scale.dat.melt$var))[sample(length(levels(as.factor(scale.dat.melt$var))))], expand = c(0.01,0.01)) +
+          ggtitle("Data parallel plot ") + theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5)) +
+          scale_colour_brewer(type = "qual", palette = "Dark2")
+        
+        
+        p <- p + geom_line(data = dat) 
+      }
     }
     ggplotly(p,tooltip = c("var","colour","y","key")) %>% layout(dragmode = "select")
   })

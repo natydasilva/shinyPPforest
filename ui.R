@@ -12,6 +12,7 @@ library(ggmosaic)
 library(devtools)
 library(PPtreeViz)
 library(devtools)
+library(PairViz)
 #install_github("natydasilva/PPforest")
 library(PPforest)
 source("shinyplots.R")
@@ -45,6 +46,12 @@ shinyUI(fluidPage(
       #           TRUE
       #       ),actionButton("goButton", "Go!")
       #     ))),
+      fluidRow(column(width = 12,
+                      radioButtons(inputId="paropt", label="Parallel", 
+                                   choices=c("Parallel","Enhanced parallel"), selected = "Parallel",
+                                   inline = TRUE)
+                      
+      )),
       fluidRow(column(
         width = 11,
         plotlyOutput("parallel", height = 400)

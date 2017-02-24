@@ -294,13 +294,27 @@ bestnode <- ppf[["output.trees"]] %>%  lapply(bnf) %>% bind_rows()
 colnames(bestnode)[-1] <- colnames(ppf$train[ , -which(colnames(ppf$train)==ppf$class.var)])
 bestnode$node <- as.factor(bestnode$node)
 
-#scale data for the parallel plot tab 1
+#scale data for the parallel plot tab 1 option 1
 myscale <- function(x) (x - mean(x)) / sd(x)
 
 scale.dat <- ppf$train %>% mutate_each(funs(myscale),-matches(ppf$class.var)) 
 scale.dat.melt <- scale.dat %>%  mutate(ids = 1:nrow(ppf$train)) %>% gather(var,Value,- colcl,-ids, convert=TRUE)
 scale.dat.melt$Variables <- as.numeric(as.factor(scale.dat.melt$var))
 colnames(scale.dat.melt)[1] <- "Class"
+
+#parallel option 2
+
+eu <- eulerian( ncol(ppf$train) - 1)
+dat.aux <- scale.dat[ , -1]
+scale.dat2 <- data.frame(Type = scale.dat [ , 1], dat.aux[ , eu])
+
+scale.dat.melt2 <- scale.dat2 %>%  mutate(ids = 1:nrow(ppf$train)) %>% gather(var,Value,-Type,-ids)
+scale.dat.melt2$Variables <- as.numeric(as.factor(scale.dat.melt2$var))
+colnames(scale.dat.melt2)[1] <- "Class"
+
+
+
+
 
 ###importance
 #impo <- c("Permuted", "PPforest importance")
@@ -528,6 +542,9 @@ imp.pl <- data.frame(nm = rownames(rf$importance),imp = aux[,"MeanDecreaseAccura
 imp.pl$nm <-  factor(imp.pl$nm, levels = imp.pl[order( imp.pl$imp), "nm"])
 
 ####################
+
+
+
 
 
 
