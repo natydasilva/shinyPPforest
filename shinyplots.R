@@ -488,7 +488,7 @@ dat.sidepp.pl <- dat.sidepp %>% gather(Classvote,Probability,-pred,-ids,-Type)
 colnames(dat.sidepp.pl )[2] <- "Class"
 
 #ROC
-rocf <- function(d) {
+rocf <- function(d){
   rocky(d$cond,d$Probability)
 }
 if(num){
@@ -513,8 +513,8 @@ dat.rocrf <- dat.side.pl %>%group_by(Classvote) %>%
 dat.rocrf$Classvote <- as.factor(dat.rocrf$Classvote)
 
 
-# predictions <- as.numeric(predict(pprf, iris, type = 'response'))
-# multiclass.roc(iris$Species, predictions)
+ # predictions <- trees_pred(ppf_fish, xnew = ppf_fish$train[ ,-1])
+ # mroc <- multiclass.roc(fishcatch$Type, predictions[[2]])
 
 
 #oob error data rf

@@ -75,6 +75,23 @@ shinyServer( function(input, output){
   
  
   #second reactive with different dimensions, used in second tabset
+  
+  rv2 <- reactiveValues(tr = data.frame( id = 1:nrow(ppf$oob.error.tree), oob = ppf$oob.error.tree, fill = FALSE ) )
+  
+  updateRV2 <- function(selectedtr) {
+    fill <- logical(length(rv2$tr$fill))
+    fill[selectedtr] <- TRUE
+    rv2$tr$fill <- fill
+  }
+  
+  observeEvent(event_data("plotly_click", source = "dibubox"), {
+    k <- event_data("plotly_click", source = "dibubox")$key
+    if (any(k %in% unique(rv2$tr$id))) {
+      selectedtr <- rv2$tr$id %in% k
+    }
+    updateRV2(selectedtr)
+  })
+  
   rv3 <- reactiveValues(bestnode = data.frame(ids = 1:(nrow(bestnode) / sum(length(
     unique( bestnode$node )))), bestnode %>% 
       dplyr::filter(node == 1)), fill = FALSE)
@@ -95,9 +112,14 @@ shinyServer( function(input, output){
   })
   
   
+  
+  
+  
   selectedparopt <- reactive({
     input$paropt
   })
+  
+  
   
   
   ############################
@@ -135,7 +157,7 @@ shinyServer( function(input, output){
     }else{
       p <-  scale.dat.melt2 %>% arrange(Variables) %>%ggplot( aes(x = Variables, y = Value,
                                                             group = ids, key = ids, colour = Class, var = var)) +
-        geom_line(alpha = 0.3) + scale_x_discrete(limits = levels(as.factor(scale.dat.melt$var))[sample(length(levels(as.factor(scale.dat.melt$var))))], expand = c(0.01,0.01)) +
+        geom_line(alpha = 0.3) + scale_x_discrete(limits = levels(as.factor(scale.dat.melt2$var))[sample(length(levels(as.factor(scale.dat.melt2$var))))], expand = c(0.01,0.01)) +
         ggtitle("Data parallel plot ") + theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5)) +
         scale_colour_brewer(type = "qual", palette = "Dark2")
     
@@ -144,7 +166,7 @@ shinyServer( function(input, output){
         dat <-   scale.dat.melt2 %>% arrange(Variables)%>% dplyr::filter(ids %in% yy)
         p <- scale.dat.melt2 %>% arrange(Variables)%>%ggplot( aes(x = Variables, y = Value,
                                                                   group = ids, key = ids, colour = Class, var = var)) +
-          geom_line(alpha = 0.3) + scale_x_discrete(limits = levels(as.factor(scale.dat.melt$var))[sample(length(levels(as.factor(scale.dat.melt$var))))], expand = c(0.01,0.01)) +
+          geom_line(alpha = 0.3) + scale_x_discrete(limits = levels(as.factor(scale.dat.melt2$var))[sample(length(levels(as.factor(scale.dat.melt2$var))))], expand = c(0.01,0.01)) +
           ggtitle("Data parallel plot ") + theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5)) +
           scale_colour_brewer(type = "qual", palette = "Dark2")
         
@@ -282,8 +304,8 @@ shinyServer( function(input, output){
   #Importance
   output$importancetree <- renderPlotly({
   tr <- 494
-    if(length(unique(impo.pl$node))>3){
-      impo.pl <- impo.pl %>% filter(node==unique(impo.pl$node)[1:3])
+    if(length(unique(impo.pl$node)) > 3){
+      impo.pl <- impo.pl %>% filter(node == unique(impo.pl$node)[1:3])
     }
     p <- ggplot(filter(impo.pl,!ids %in% tr), aes( x = Variables, y = Abs.importance, group = ids,
                                                   key = ids, var = var)) +
@@ -291,10 +313,10 @@ shinyServer( function(input, output){
       scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
       theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5 ) )
 
-    p <- p + geom_jitter( data = filter(impo.pl, ids %in% tr), color="red",height = 0) +
+    p <- p + geom_jitter( data = filter(impo.pl, ids %in% tr), color = "red",height = 0) +
       facet_grid(node ~ .) + scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) +
       ggtitle("Importance variable for each tree") +
-      theme(legend.position = "none", axis.text.x  = element_text(angle=90, vjust=0.5), aspect.ratio = 1)
+      theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1)
 
     yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
     yy2 <- yy1[!is.na(yy1)]
@@ -302,7 +324,7 @@ shinyServer( function(input, output){
     if (length(yy2) > 0) {
       dat <-   impo.pl %>% dplyr::filter(!ids %in% yy2)
       dat2 <-   impo.pl %>% dplyr::filter(ids %in% yy2)
-      p <- ggplot(dat, aes(x = Variables , y = Abs.importance, key = ids,var.=var)) +
+      p <- ggplot(dat, aes(x = Variables , y = Abs.importance, key = ids,var.= var)) +
         geom_jitter(height = 0, size = I(2),alpha = 0.3) + facet_grid(node ~ .) +
         scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1 )
@@ -343,30 +365,37 @@ shinyServer( function(input, output){
 
   #Boxplot error tree
   output$boxtreeerror <- renderPlotly({
+    if(rv2$tr$id > 0){
+      yy1 <- as.numeric(rv2$tr$id[rv2$tr$fill])
+      yy2 <- yy1[!is.na(yy1)]
+      }else{
     yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
     yy2 <- yy1[!is.na(yy1)]
-
+}
     if (length(yy2) > 0) {
       error <- round(ppf$oob.error.tree[yy2],3)
+      
       p <-
         ggplot(error.tree, aes(
-          x = trees, y = OOB.error.tree,fill = trees,key = ids
+          x = trees, y = OOB.error.tree, fill = trees, key = ids
         )) + geom_boxplot() + scale_fill_manual(values = "#ffffff") +
         guides(fill = FALSE) + labs(x = "", y = "OOB error trees") +
         coord_flip() +   geom_point(
-          aes(y = error),alpha = 0.1,size = I(2),color = I("red")
-        )
+          aes(y = error),alpha = 0.1,size = I(3),color = I("red")
+        ) + geom_point(aes(y = round(ppf$oob.error.tree, 3))
+                       , alpha = 0.8, size = I(2),color = I("black"))    
 
-      ggplotly(p,tooltip = "y") %>% layout(dragmode = "select")
+      ggplotly(p,tooltip = "y", source = "dibubox") %>% layout(dragmode = "select")
     }else{
       error <- round(ppf$oob.error.tree[tr], 3)
       p <- ggplot(error.tree, aes(x = trees, y = OOB.error.tree,fill = trees)) + geom_boxplot() +
         scale_fill_manual(values = "#ffffff") +
         guides(fill = FALSE) +labs(x = "", y = "OOB error trees") +
         coord_flip()  +   geom_point(
-          aes(y = error), alpha = 0.1, size = I(2),color = I("red") )
+          aes(y = error), alpha = 0.1, size = I(3),color = I("red") ) + geom_point(aes(y = round(ppf$oob.error.tree, 3))
+          , alpha = 0.8, size = I(2),color = I("black"))    
 
-      ggplotly(p,tooltip = "y") %>% layout(dragmode = "select")
+      ggplotly(p,tooltip = "y", source = "dibubox") %>% layout(dragmode = "select")
 
     }
 
