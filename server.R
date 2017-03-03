@@ -94,7 +94,7 @@ shinyServer( function(input, output){
   
   rv3 <- reactiveValues(bestnode = data.frame(ids = 1:(nrow(bestnode) / sum(length(
     unique( bestnode$node )))), bestnode %>% 
-      dplyr::filter(node == 1)), fill = FALSE)
+      dplyr::filter(node == 1), ooberr = ppf$oob.error.tree), fill = FALSE)
   
   
   updateRV3 <- function(selectedbest) {
@@ -320,7 +320,7 @@ shinyServer( function(input, output){
 
     yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
     yy2 <- yy1[!is.na(yy1)]
-
+  
     if (length(yy2) > 0) {
       dat <-   impo.pl %>% dplyr::filter(!ids %in% yy2)
       dat2 <-   impo.pl %>% dplyr::filter(ids %in% yy2)
@@ -332,7 +332,7 @@ shinyServer( function(input, output){
       p <-  p  + facet_grid(node ~ .) + geom_jitter(height = 0, data = dat2,  color = "red" )
 
     }
-    ggplotly(p,tooltip = c("var","y","key"),source = "dibu")
+    ggplotly(p,tooltip = c("var","y","key"), source = "dibu")
   })
 
   #Density
@@ -365,16 +365,17 @@ shinyServer( function(input, output){
 
   #Boxplot error tree
   output$boxtreeerror <- renderPlotly({
-    if(rv2$tr$id > 0){
-      yy1 <- as.numeric(rv2$tr$id[rv2$tr$fill])
-      yy2 <- yy1[!is.na(yy1)]
-      }else{
+    # if(rv2$tr$id > 0){
+    #   yy1 <- as.numeric(rv2$tr$id[rv2$tr$fill])
+    #   yy2 <- yy1[!is.na(yy1)]
+    #   }else{
     yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
     yy2 <- yy1[!is.na(yy1)]
-}
+# }
     if (length(yy2) > 0) {
-      error <- round(ppf$oob.error.tree[yy2],3)
-      
+      dat2 <-   rv3$bestnode %>% dplyr::filter(ids %in% yy2)
+      #error <- round(ppf$oob.error.tree[yy2],3)
+      error <- round(dat2$ooberr, 3)
       p <-
         ggplot(error.tree, aes(
           x = trees, y = OOB.error.tree, fill = trees, key = ids
@@ -383,19 +384,19 @@ shinyServer( function(input, output){
         coord_flip() +   geom_point(
           aes(y = error),alpha = 0.1,size = I(3),color = I("red")
         ) + geom_point(aes(y = round(ppf$oob.error.tree, 3))
-                       , alpha = 0.8, size = I(2),color = I("black"))    
+                       , alpha = 0.8, size = I(2), color = I("black"))    
 
-      ggplotly(p,tooltip = "y", source = "dibubox") %>% layout(dragmode = "select")
+      ggplotly(p,tooltip = "key",source = "dibu") %>% layout(dragmode = "select")
     }else{
       error <- round(ppf$oob.error.tree[tr], 3)
-      p <- ggplot(error.tree, aes(x = trees, y = OOB.error.tree,fill = trees)) + geom_boxplot() +
+      p <- ggplot(error.tree, aes(x = trees, y = OOB.error.tree,fill = trees,  key = ids)) + geom_boxplot() +
         scale_fill_manual(values = "#ffffff") +
         guides(fill = FALSE) +labs(x = "", y = "OOB error trees") +
         coord_flip()  +   geom_point(
-          aes(y = error), alpha = 0.1, size = I(3),color = I("red") ) + geom_point(aes(y = round(ppf$oob.error.tree, 3))
+          aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + geom_point(aes(y = round(ppf$oob.error.tree, 3))
           , alpha = 0.8, size = I(2),color = I("black"))    
 
-      ggplotly(p,tooltip = "y", source = "dibubox") %>% layout(dragmode = "select")
+      ggplotly(p,tooltip = "key",source = "dibu") %>% layout(dragmode = "select")
 
     }
 
