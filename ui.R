@@ -83,12 +83,12 @@ shinyUI(fluidPage(
 
     tabPanel(
       "Models",
-      fluidRow(column(width = 12,sidebarPanel(
-        selectizeInput(
-          'xnode', 'Select 3 nodes', node , selected = node[1:3], multiple =
-            TRUE
-        ), actionButton("goButton2", "Go!")
-      ))),
+      # fluidRow(column(width = 12,sidebarPanel(
+      #   selectizeInput(
+      #     'xnode', 'Select 3 nodes', node , selected = node[1:3], multiple =
+      #       TRUE
+      #   ), actionButton("goButton2", "Go!")
+      # ))),
       fluidRow(
         column(width = 7,
                plotlyOutput("importancetree",height = 500)), column(

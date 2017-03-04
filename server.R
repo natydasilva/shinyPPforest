@@ -301,19 +301,20 @@ shinyServer( function(input, output){
   selectedDatanode <- reactive({
     input$goButton2
     isolate(input$xnode)
-  })
   
-  
+    })
+
+
+ 
   #Importance
   output$importancetree <- renderPlotly({
-  
+    
  
     if(length(unique(impo.pl$node)) > 3){
-      # if(selectedDatanode()){
-      # impo.pl <- impo.pl %>% filter(node == unique(impo.pl$node)[1:3])
-      # }else{
-        impo.pl <- impo.pl %>% filter(node == selectedDatanode()) 
-    #}
+tr<- 494
+       # impo.pl <- impo.pl %>% filter(node == selectedDatanode()) 
+      impo.pl <- impo.pl %>% filter(node == node[1:3]) 
+      
     p <- ggplot(filter(impo.pl,!ids %in% tr), aes( x = Variables, y = Abs.importance, group = ids,
                                                   key = ids, var = var)) +
       geom_jitter(height = 0, size = I(2), alpha = 0.3) + facet_grid(node ~ .) +
@@ -327,16 +328,35 @@ shinyServer( function(input, output){
 
     yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
     yy2 <- yy1[!is.na(yy1)]
-  
+   
     if (length(yy2) > 0) {
+      
+      node <- ppf$output.trees[[yy2]]$Tree.Struct[ppf$output.trees[[yy2]]$Tree.Struct[,"Index"]!=0, "id"]
+      bnf <- function(x) {
+        bn <- abs(x$projbest.node)
+        bn[bn == 0] <- NA
+        data.frame(node = node, bn)
+      }
+      bestnode <- ppf[["output.trees"]] %>%  lapply(bnf) %>% bind_rows()
+      
+      
+      colnames(bestnode)[-1] <- colnames(ppf$train[ , -which(colnames(ppf$train)==ppf$class.var)])
+      bestnode$node <- as.factor(bestnode$node)
+      
+      impo.pl <- bestnode %>% 
+        mutate(ids = rep(1:ppf$n.tree,each = nrow(ppf[[8]][[yy2]]$projbest.node) ) ) %>% 
+        gather(var, value, -ids, -node) 
+      impo.pl$Variables <- as.numeric(as.factor(impo.pl$var))
+      impo.pl$Abs.importance <- round(impo.pl$value,2)
+      
       dat <-   impo.pl %>% dplyr::filter(!ids %in% yy2)
       dat2 <-   impo.pl %>% dplyr::filter(ids %in% yy2)
       p <- ggplot(dat, aes(x = Variables , y = Abs.importance, key = ids,var.= var)) +
-        geom_jitter(height = 0, size = I(2),alpha = 0.3) + facet_grid(node ~ .) +
+        geom_jitter(height = 0, size = I(2),alpha = 0.3) + facet_grid(node[1:3] ~ .) +
         scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1 )
 
-      p <-  p  + facet_grid(node ~ .) + geom_jitter(height = 0, data = dat2,  color = "red" )
+      p <-  p  + facet_grid(node[1:3] ~ .) + geom_jitter(height = 0, data = dat2,  color = "red" )
 
     }
   }
@@ -389,12 +409,12 @@ shinyServer( function(input, output){
           x = trees, y = OOB.error.tree, fill = trees, key = ids
         )) + geom_boxplot() + scale_fill_manual(values = "#ffffff") +
         guides(fill = FALSE) + labs(x = "", y = "OOB error trees") +
-        coord_flip() +   geom_point(
-          aes(y = error),alpha = 0.1,size = I(3),color = I("red")
+        coord_flip()  +   geom_point(
+          aes(y = error),key=yy2,alpha = 0.1,size = I(3),color = I("red")
         ) + geom_point(data = error.tree, aes(y = OOB.error.tree)
                        , alpha = 0.8, size = I(1), color = I("black"))    
      
-      ggplotly(p,tooltip =  c("key","y"),source = "dibu") %>% layout(dragmode = "select")
+      ggplotly(p,tooltip =  c("y"),source = "dibu") %>% layout(dragmode = "select")
     }else{
       error <- round(ppf$oob.error.tree[tr], 3)
       p <- ggplot(error.tree, aes(x = trees, y = OOB.error.tree,fill = trees,  key = ids)) + geom_boxplot() +
@@ -404,7 +424,7 @@ shinyServer( function(input, output){
           aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + geom_point(aes(y = OOB.error.tree)
           , alpha = 0.8, size = I(1),color = I("black"))    
 
-      ggplotly(p,tooltip = c("key","y"),source = "dibu") %>% layout(dragmode = "select")
+      ggplotly(p,tooltip = c("y"),source = "dibu") %>% layout(dragmode = "select")
 
     }
 
