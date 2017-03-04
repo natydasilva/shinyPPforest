@@ -252,10 +252,11 @@ f.helmert <- function(d)
   return(helmert)
 }
 
+node <- ppf$output.trees[[tr]]$Tree.Struct[ppf$output.trees[[tr]]$Tree.Struct[,"Index"]!=0, "id"]
 bnf <- function(x) {
   bn <- abs(x$projbest.node)
   bn[bn == 0] <- NA
-  data.frame(node = 1:dim(x$projbest.node)[1], bn)
+  data.frame(node = node, bn)
 }
 
 #projected data
@@ -459,13 +460,18 @@ ternaryshell2 <- function(gg1, gg2, ppf, sp = length(unique(ppf$train[,ppf$class
 
 impo.pl <- bestnode %>% 
   mutate(ids = rep(1:ppf$n.tree,each = nrow(ppf[[8]][[tr]]$projbest.node) ) ) %>% 
-  gather(var, value, -ids, -node)
+  gather(var, value, -ids, -node) 
 impo.pl$Variables <- as.numeric(as.factor(impo.pl$var))
 impo.pl$Abs.importance <- round(impo.pl$value,2)
 
 
 #eror tree
 error.tree <- data_frame(ids = 1:ppf$n.tree, trees = "trees", OOB.error.tree = ppf$oob.error.tree[,1])
+
+
+n.class <- ppf$train %>% select_(ppf$class.var) %>% unique() %>% nrow()
+lev <- ppf$train %>% select_(ppf$class.var) %>%   sapply(levels) %>% as.factor() 
+
 
 ###Tab 3
 #rf

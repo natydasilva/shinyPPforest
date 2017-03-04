@@ -1,4 +1,3 @@
-
 library(ggplot2)
 library(shiny)
 library(plotly)
@@ -12,7 +11,6 @@ library(ggmosaic)
 library(devtools)
 library(PPtreeViz)
 library(devtools)
-
 
 #install_github("natydasilva/PPforest")
 library(PPforest)
@@ -76,22 +74,22 @@ shinyServer( function(input, output){
  
   #second reactive with different dimensions, used in second tabset
   
-  rv2 <- reactiveValues(tr = data.frame( id = 1:nrow(ppf$oob.error.tree), oob = ppf$oob.error.tree, fill = FALSE ) )
-  
-  updateRV2 <- function(selectedtr) {
-    fill <- logical(length(rv2$tr$fill))
-    fill[selectedtr] <- TRUE
-    rv2$tr$fill <- fill
-  }
-  
-  observeEvent(event_data("plotly_click", source = "dibubox"), {
-    k <- event_data("plotly_click", source = "dibubox")$key
-    if (any(k %in% unique(rv2$tr$id))) {
-      selectedtr <- rv2$tr$id %in% k
-    }
-    updateRV2(selectedtr)
-  })
-  
+  # rv2 <- reactiveValues(tr = data.frame( id = 1:nrow(ppf$oob.error.tree), oob = ppf$oob.error.tree, fill = FALSE ) )
+  # 
+  # updateRV2 <- function(selectedtr) {
+  #   fill <- logical(length(rv2$tr$fill))
+  #   fill[selectedtr] <- TRUE
+  #   rv2$tr$fill <- fill
+  # }
+  # 
+  # observeEvent(event_data("plotly_click", source = "dibubox"), {
+  #   k <- event_data("plotly_click", source = "dibubox")$key
+  #   if (any(k %in% unique(rv2$tr$id))) {
+  #     selectedtr <- rv2$tr$id %in% k
+  #   }
+  #   updateRV2(selectedtr)
+  # })
+  # 
   rv3 <- reactiveValues(bestnode = data.frame(ids = 1:(nrow(bestnode) / sum(length(
     unique( bestnode$node )))), bestnode %>% 
       dplyr::filter(node == 1), ooberr = ppf$oob.error.tree), fill = FALSE)
@@ -111,9 +109,7 @@ shinyServer( function(input, output){
     updateRV3(selectedbest)
   })
   
-  
-  
-  
+
   
   selectedparopt <- reactive({
     input$paropt
@@ -301,12 +297,23 @@ shinyServer( function(input, output){
   ################################
   #             Tab 2            #
   ################################
+  
+  selectedDatanode <- reactive({
+    input$goButton2
+    isolate(input$xnode)
+  })
+  
+  
   #Importance
   output$importancetree <- renderPlotly({
-  tr <- 494
+  
+ 
     if(length(unique(impo.pl$node)) > 3){
-      impo.pl <- impo.pl %>% filter(node == unique(impo.pl$node)[1:3])
-    }
+      # if(selectedDatanode()){
+      # impo.pl <- impo.pl %>% filter(node == unique(impo.pl$node)[1:3])
+      # }else{
+        impo.pl <- impo.pl %>% filter(node == selectedDatanode()) 
+    #}
     p <- ggplot(filter(impo.pl,!ids %in% tr), aes( x = Variables, y = Abs.importance, group = ids,
                                                   key = ids, var = var)) +
       geom_jitter(height = 0, size = I(2), alpha = 0.3) + facet_grid(node ~ .) +
@@ -332,6 +339,7 @@ shinyServer( function(input, output){
       p <-  p  + facet_grid(node ~ .) + geom_jitter(height = 0, data = dat2,  color = "red" )
 
     }
+  }
     ggplotly(p,tooltip = c("var","y","key"), source = "dibu")
   })
 
@@ -383,20 +391,20 @@ shinyServer( function(input, output){
         guides(fill = FALSE) + labs(x = "", y = "OOB error trees") +
         coord_flip() +   geom_point(
           aes(y = error),alpha = 0.1,size = I(3),color = I("red")
-        ) + geom_point(aes(y = round(ppf$oob.error.tree, 3))
-                       , alpha = 0.8, size = I(2), color = I("black"))    
-
-      ggplotly(p,tooltip = "key",source = "dibu") %>% layout(dragmode = "select")
+        ) + geom_point(data = error.tree, aes(y = OOB.error.tree)
+                       , alpha = 0.8, size = I(1), color = I("black"))    
+     
+      ggplotly(p,tooltip =  c("key","y"),source = "dibu") %>% layout(dragmode = "select")
     }else{
       error <- round(ppf$oob.error.tree[tr], 3)
       p <- ggplot(error.tree, aes(x = trees, y = OOB.error.tree,fill = trees,  key = ids)) + geom_boxplot() +
         scale_fill_manual(values = "#ffffff") +
         guides(fill = FALSE) +labs(x = "", y = "OOB error trees") +
         coord_flip()  +   geom_point(
-          aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + geom_point(aes(y = round(ppf$oob.error.tree, 3))
-          , alpha = 0.8, size = I(2),color = I("black"))    
+          aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + geom_point(aes(y = OOB.error.tree)
+          , alpha = 0.8, size = I(1),color = I("black"))    
 
-      ggplotly(p,tooltip = "key",source = "dibu") %>% layout(dragmode = "select")
+      ggplotly(p,tooltip = c("key","y"),source = "dibu") %>% layout(dragmode = "select")
 
     }
 
@@ -415,7 +423,6 @@ shinyServer( function(input, output){
     }
 
   })
-
 
   ################################
   #             Tab 3            #
