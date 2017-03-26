@@ -1,6 +1,6 @@
 
 
-#Data trans density and mosaic
+#Data transformation density and mosaic
 dat_dens <- function(PPclassOBJ, node.id, Rule, legend = TRUE, std = TRUE, 
                      image = FALSE, diff.prop = 0.2,c1=FALSE) {
   
@@ -113,6 +113,7 @@ PPtree_dens <- function(ppf, tr, nodes = NULL) {
   ggplotly(p1, tooltip = c("fill", "x"))
   
 }
+
 #Mosaic plot Tab 2
 PPtree_mosaic <- function(ppf,tr, nodes = NULL){
   if(length(ppf[[8]][[tr]]$Tree.Struct[ppf[[8]][[tr]]$Tree.Struct[,4]!=0,1])<3){
@@ -146,6 +147,7 @@ PPtree_mosaic <- function(ppf,tr, nodes = NULL){
   ggplotly(p1)
   
 }
+
 ##ROC curve tab 3
 rocky <- function(response, predictor){
   aux <- roc(response, predictor)
@@ -157,6 +159,7 @@ rocky <- function(response, predictor){
     sensitivities = sensi, specificities = speci, auc = rep(auc, length(sensi))
   )
 }
+
 #plot oob error
 ppf_oob_error <- function(ppf, nsplit1) {
   ntree <- NULL
@@ -216,11 +219,7 @@ ppf_oob_error <- function(ppf, nsplit1) {
   oob.pl
 }
 
-#load data
-# data.sources = list.files(pattern="*.Rdata")
-# for(i in 1:length(data.sources)){
-#   load( data.sources[i] )
-# }
+
 load("impo_fish.Rdata")
 load("ppf_fish.Rdata")
 load("rf_fish.Rdata")
@@ -343,7 +342,7 @@ makePairs <- function(dat, id = c(a, b, c)) {
 }
 
 #ppf PPforest object
-#V1,v2,v3 select the 3 proj directions
+#V1,V2,V3 select the 3 proj directions
 ternarydata <- function(ppf, v1, v2, v3) {
   n.class <- ppf$train %>% select_(ppf$class.var) %>% unique() %>% nrow()
   projct <- t(f.helmert( length(unique(ppf$train[, ppf$class.var]) ) )[-1,])
@@ -547,7 +546,6 @@ aux <- data.frame(rf$importance)
 imp.pl <- data.frame(nm = rownames(rf$importance),imp = aux[,"MeanDecreaseAccuracy"]) %>% arrange(imp)
 imp.pl$nm <-  factor(imp.pl$nm, levels = imp.pl[order( imp.pl$imp), "nm"])
 
-####################
 
 
 
