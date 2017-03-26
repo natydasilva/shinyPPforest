@@ -12,7 +12,7 @@ library(devtools)
 library(PPtreeViz)
 library(devtools)
 
-#install_github("natydasilva/PPforest")
+install_github("natydasilva/PPforest", force=TRUE)
 library(PPforest)
 source("shinyplots.R")
 
