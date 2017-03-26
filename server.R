@@ -11,10 +11,8 @@ library(ggmosaic)
 library(devtools)
 library(PPtreeViz)
 library(devtools)
-source("https://bioconductor.org/biocLite.R")
-biocLite("graph")
+library(graph)
 library(PairViz)
-install_github("natydasilva/PPforest", force=TRUE)
 library(PPforest)
 source("shinyplots.R")
 
@@ -206,7 +204,7 @@ shinyServer( function(input, output){
     
     reddat <- rv$data %>% 
       select(ids, Class, starts_with("vote"), pred) 
-    colnames(reddat) <- colnames( reddat) %>% str_replace("vote.","")
+    colnames(reddat) <- colnames( reddat) %>% stringr::str_replace("vote.","")
     
     sidepl <- reddat %>% gather(classpred, Probability, -pred, -ids, -Class)
     
