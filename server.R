@@ -35,8 +35,6 @@ impoinfo <- impoinfo_fish
 #############################
 shinyServer( function(input, output){
   
-  # colcl <- which(colnames(ppf$train) %in% class) # no se como funciona esto aca, lo comento y lo llevo con la mugre
-  
   #Define reactive values for MDS plot and vote matrix plots
   rv <- reactiveValues( data = data.frame(
     MDS1 = rf.mds$points[,1], MDS2 = rf.mds$points[,2],
@@ -72,24 +70,7 @@ shinyServer( function(input, output){
   })
   
  
-  #second reactive with different dimensions, used in second tabset
-  
-  # rv2 <- reactiveValues(tr = data.frame( id = 1:nrow(ppf$oob.error.tree), oob = ppf$oob.error.tree, fill = FALSE ) )
-  # 
-  # updateRV2 <- function(selectedtr) {
-  #   fill <- logical(length(rv2$tr$fill))
-  #   fill[selectedtr] <- TRUE
-  #   rv2$tr$fill <- fill
-  # }
-  # 
-  # observeEvent(event_data("plotly_click", source = "dibubox"), {
-  #   k <- event_data("plotly_click", source = "dibubox")$key
-  #   if (any(k %in% unique(rv2$tr$id))) {
-  #     selectedtr <- rv2$tr$id %in% k
-  #   }
-  #   updateRV2(selectedtr)
-  # })
-  # 
+
   rv3 <- reactiveValues(bestnode = data.frame(ids = 1:(nrow(bestnode) / sum(length(
     unique( bestnode$node )))), bestnode %>% 
       dplyr::filter(node == 1), ooberr = ppf$oob.error.tree), fill = FALSE)
@@ -123,10 +104,7 @@ shinyServer( function(input, output){
   ############################
   #proximity and vote matrix individual level comparison
 
-    # selectedData <- reactive({
-    #   input$goButton
-    #   isolate(input$clid)
-    # })
+  
   
   ##Parallel plot with standarized data
 
@@ -393,16 +371,13 @@ tr<- 494
 
   #Boxplot error tree
   output$boxtreeerror <- renderPlotly({
-    # if(rv2$tr$id > 0){
-    #   yy1 <- as.numeric(rv2$tr$id[rv2$tr$fill])
-    #   yy2 <- yy1[!is.na(yy1)]
-    #   }else{
+  
     yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
     yy2 <- yy1[!is.na(yy1)]
-# }
+
     if (length(yy2) > 0) {
       dat2 <-   rv3$bestnode %>% dplyr::filter(ids %in% yy2)
-      #error <- round(ppf$oob.error.tree[yy2],3)
+    
       error <- round(dat2$ooberr, 3)
       p <-
         ggplot(error.tree, aes(

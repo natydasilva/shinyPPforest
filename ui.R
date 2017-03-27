@@ -40,12 +40,7 @@ shinyUI(fluidPage(
   tabsetPanel(
     tabPanel(
       "Individual cases",
-      # fluidRow(column(width = 12,sidebarPanel(
-      #       selectizeInput(
-      #         'clid', 'Select Class', as.character(lev) , selected = lev,multiple =
-      #           TRUE
-      #       ),actionButton("goButton", "Go!")
-      #     ))),
+      
       fluidRow(column(width = 12,
                       radioButtons(inputId="paropt", label="Parallel", 
                                    choices=c("Parallel","Enhanced parallel"), selected = "Parallel",
@@ -83,12 +78,7 @@ shinyUI(fluidPage(
 
     tabPanel(
       "Models",
-      # fluidRow(column(width = 12,sidebarPanel(
-      #   selectizeInput(
-      #     'xnode', 'Select 3 nodes', node , selected = node[1:3], multiple =
-      #       TRUE
-      #   ), actionButton("goButton2", "Go!")
-      # ))),
+      
       fluidRow(
         column(width = 7,
                plotlyOutput("importancetree",height = 500)), column(
