@@ -314,8 +314,6 @@ colnames(scale.dat.melt2)[1] <- "Class"
 
 
 
-
-
 ###importance
 #impo <- c("Permuted", "PPforest importance")
 makePairs <- function(dat, id = c(a, b, c)) {
@@ -448,9 +446,6 @@ ternaryshell2 <- function(gg1, gg2, ppf, sp = length(unique(ppf$train[,ppf$class
   
   p1 +  geom_point(data = gg2 %>% filter(pair %in% paste(dx,dy, sep = "-") ), aes(x, y, color = Class, key =ids), size = I(3)) 
 }
-
-
-
 
 
 

@@ -20,15 +20,13 @@ data.sources = list.files(pattern="*.Rdata")
 for(i in 1:length(data.sources)){
   load( data.sources[i] )
 }
+
 ppf <- ppf_fish
 imp <- impo_fish
 rf <- rf_fish
 impoaver <- impoaver_fish
 impoinfo <- impoinfo_fish
-# impoaver_fish <- ppf_avg_pptree_imp(ppf, "Type") 
-#  save(impoaver_fish,file="impoaver_fish.Rdata")
-#  save(impoinfo_fish, file="impoinfo_fish.Rdata")
-# impoinfo_fish <- ppf_global_imp(ppf$train, class = "Type", ppf) 
+
 
 #############################
 #         SERVER            #
@@ -282,8 +280,6 @@ shinyServer( function(input, output){
   
     })
 
-
- 
   #Importance
   output$importancetree <- renderPlotly({
     
@@ -429,14 +425,11 @@ tr<- 494
     isolate(input$xcol)
   })
   
-  
-  
+
   selectedDataimpo <- reactive({
    input$importance
   })
 
-
- 
   # Side by side PPRF
   output$siderfpp <- renderPlotly({
 
