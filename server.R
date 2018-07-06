@@ -379,21 +379,23 @@ tr<- 494
         ggplot(error.tree, aes(
           x = trees, y = OOB.error.tree, fill = trees, key = ids
         )) + geom_boxplot() + scale_fill_manual(values = "#ffffff") +
-        guides(fill = FALSE) + labs(x = "", y = "OOB error trees") +
+        guides(fill = FALSE) +
         coord_flip()  +   geom_point(
           aes(y = error),key=yy2,alpha = 0.1,size = I(3),color = I("red")
         ) + geom_point(data = error.tree, aes(y = OOB.error.tree)
-                       , alpha = 0.8, size = I(1), color = I("black"))    
+                       , alpha = 1/3, size = I(1), color = I("black")) + labs(x = " ", y = "OOB error trees")  
      
       ggplotly(p,tooltip =  c("y"),source = "dibu") %>% layout(dragmode = "select")
     }else{
       error <- round(ppf$oob.error.tree[tr], 3)
       p <- ggplot(error.tree, aes(x = trees, y = OOB.error.tree,fill = trees,  key = ids)) + geom_boxplot() +
         scale_fill_manual(values = "#ffffff") +
-        guides(fill = FALSE) +labs(x = "", y = "OOB error trees") +
+        guides(fill = FALSE) +
         coord_flip()  +   geom_point(
           aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + geom_point(aes(y = OOB.error.tree)
-          , alpha = 0.8, size = I(1),color = I("black"))    
+          , alpha = 0.8, size = I(1),color = I("black"))  +
+        labs(x = "", y = "OOB error trees")  
+        
 
       ggplotly(p,tooltip = c("y"),source = "dibu") %>% layout(dragmode = "select")
 

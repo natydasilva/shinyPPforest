@@ -133,7 +133,7 @@ PPtree_mosaic <- function(ppf,tr, nodes = NULL){
   
   dat_pl<- apply(nn, 1, densf)  %>%  lapply(data.frame) %>%bind_rows()
   
-  levels(dat_pl$Dir)<-c("Left", "Right")
+  levels(dat_pl$Dir) <- c("Left", "Right")
   myColors <- brewer.pal(length( unique( ppf[[8]][[tr]]$origclass ) ), "Dark2")
   names(myColors) <- levels(dat_pl$Class)
   
@@ -141,7 +141,7 @@ PPtree_mosaic <- function(ppf,tr, nodes = NULL){
   
   
   p1 <- dat_mosaic %>% filter(node.id %in%nodes) %>% ggplot() + 
-    geom_mosaic( aes(weight = Freq, x = product(Class,Dir) ,fill = Class))+facet_grid(~node.id)+
+    geom_mosaic( aes(weight = Freq, x = product(Class,Dir) ,fill = Class),offset=0.007)+facet_grid(~node.id)+
     scale_fill_manual(values = myColors) + theme(legend.position="none",axis.text.x  = element_text(angle=90, vjust=0.5),aspect.ratio = 1) +xlab("Class")
   
   ggplotly(p1)
