@@ -81,11 +81,16 @@ shinyUI(fluidPage(
       
       fluidRow(
         column(width = 7,
-               plotlyOutput("importancetree",height = 500)), column(
-                 width = 4,
-                 plotOutput("plottree",height = 350)
-                 , plotlyOutput('boxtreeerror',height = 150)
-               )
+        plotlyOutput('boxtreeerror',height = 150))
+        
+        ), 
+      fluidRow(
+        column(width = 5,
+               plotOutput("plottree",height = 500)), 
+        column(width = 7,
+               plotlyOutput("importancetree",height = 500)
+                 
+          )
       ),
       fluidRow(
         if(sum(ppf[[8]][[1]]$Tree.Struct[,4]!=0) == 1){
