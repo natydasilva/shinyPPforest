@@ -128,7 +128,7 @@ PPtree_mosaic <- function(ppf,tr, nodes = NULL){
   nn <- data.frame(nn = nodes)
   
   densf <- function(x){
-    dat_dens(PPclassOBJ=ppf[[8]][[tr]],node.id=x,Rule=1)
+    dat_dens(PPclassOBJ = ppf[[8]][[tr]], node.id = x, Rule = 1)
   }
   
   dat_pl<- apply(nn, 1, densf)  %>%  lapply(data.frame) %>%bind_rows()
@@ -171,11 +171,12 @@ ppf_oob_error <- function(ppf, nsplit1) {
       x + 1)
     
     
-    oob.obs <- index2 %>%  lapply(function(x)
-      data.frame(obs=!l.train %in% x)) %>% bind_cols() %>%t()
+    oob.obs <- index2 %>%  lapply(function(x) data.frame(obs=!l.train %in% x) %>%  setNames(nm =paste('obs', x, sep='')))  %>% 
+    bind_cols() %>%t()
     pred.mtree <- ppf$vote.mat[1:m,]
     
     
+    index2 %>%  lapply(function(x) data.frame(obs=!l.train %in% x))
     
     oob.pred <-
       sapply(
@@ -233,8 +234,8 @@ imp<-impo_fish
 
 # daba errror en el server, class no esta definido, lo puse yo a prepo
 # colcl se necesita para que corra shinyplots, no puede estar definido en server supongo
-class <- colnames(ppf$train)[1]
-colcl <- which(colnames(ppf$train) %in% class)
+clase <- colnames(ppf$train)[1]
+colcl <- which(colnames(ppf$train) %in% clase)
 
 
 # el projt se usaba antes de ser creado
@@ -250,13 +251,19 @@ f.helmert <- function(d)
   }
   return(helmert)
 }
+# node <- ppf$output.trees[[tr]]$Tree.Struct[ppf$output.trees[[tr]]$Tree.Struct[,"Index"]!=0, "id"]
 
-node <- ppf$output.trees[[tr]]$Tree.Struct[ppf$output.trees[[tr]]$Tree.Struct[,"Index"]!=0, "id"]
+# x<-ppf[[8]][[55]]
+  
 bnf <- function(x) {
-  bn <- abs(x$projbest.node)
+  # node <- x$Tree.Struct[x$Tree.Struct[,"Index"]!=0, "id"]
+  nodes <- x$Tree.Struct[x$Tree.Struct[,4]!=0,1]
+  # nodes <- x$Tree.Struct[x$Tree.Struct[,4]!=0,1]
+    bn <- abs(x$projbest.node)
   bn[bn == 0] <- NA
-  data.frame(node = node, bn)
+  data.frame(node = nodes, bn)
 }
+
 
 #projected data
 projct <- t(f.helmert(length(unique(ppf$train[ , ppf$class.var] )))[-1, ])
@@ -276,7 +283,7 @@ if(!is.factor(ppf$train[,colcl] )){
 }
 
 n.class <- ppf$train %>% select_(ppf$class.var) %>% unique() %>% nrow()
-lev <- ppf$train %>% select_(ppf$class.var) %>%   sapply(levels) %>% as.factor() 
+lev <- ppf$train %>% select(ppf$class.var) %>%   sapply(levels) %>% as.factor() 
 
 k = 2
 id <- diag(dim(ppf$train)[1])
@@ -287,9 +294,16 @@ nlevs <- nlevels(ppf$train[, 1])
 
 df <- data.frame(Class = ppf$train[, 1], rf.mds$points)
 
+#ANTES lio con ppf[["output.trees"]]
+bestnode <- ppf[[8]]%>%  lapply(bnf) %>% bind_rows()
 
-bestnode <- ppf[["output.trees"]] %>%  lapply(bnf) %>% bind_rows()
-
+# bestnode$tr <- 
+# aux2<- ppf[[8]]%>%  lapply(bnf2) %>% bind_rows() 
+# bnf2 <- function(x) {
+#   
+#   length(x$Tree.Struct[x$Tree.Struct[,4]!=0,1])
+#   
+# }
 
 colnames(bestnode)[-1] <- colnames(ppf$train[ , -which(colnames(ppf$train)==ppf$class.var)])
 bestnode$node <- as.factor(bestnode$node)
@@ -298,7 +312,7 @@ bestnode$node <- as.factor(bestnode$node)
 myscale <- function(x) (x - mean(x)) / sd(x)
 
 scale.dat <- ppf$train %>% mutate_each(funs(myscale),-matches(ppf$class.var)) 
-scale.dat.melt <- scale.dat %>%  mutate(ids = 1:nrow(ppf$train)) %>% gather(var,Value,- colcl,-ids, convert=TRUE)
+scale.dat.melt <- scale.dat %>%  mutate(ids = 1:nrow(ppf$train)) %>% gather(var,Value,- all_of(colcl),-ids, convert=TRUE)
 scale.dat.melt$Variables <- as.numeric(as.factor(scale.dat.melt$var))
 colnames(scale.dat.melt)[1] <- "Class"
 
@@ -451,16 +465,17 @@ ternaryshell2 <- function(gg1, gg2, ppf, sp = length(unique(ppf$train[,ppf$class
 
 ###Tab 2 data
 ##Importance tree
-
-impo.pl <- bestnode %>% 
+impofn <- function(tr){
+impo <- bestnode %>% 
   mutate(ids = rep(1:ppf$n.tree,each = nrow(ppf[[8]][[tr]]$projbest.node) ) ) %>% 
   gather(var, value, -ids, -node) 
-impo.pl$Variables <- as.numeric(as.factor(impo.pl$var))
-impo.pl$Abs.importance <- round(impo.pl$value,2)
-
+impo$Variables <- as.numeric(as.factor(impo$var))
+impo$Abs.importance <- round(impo$value,2)
+return(impo)
+}
 
 #eror tree
-error.tree <- data_frame(ids = 1:ppf$n.tree, trees = "trees", OOB.error.tree = ppf$oob.error.tree[,1])
+error.tree <- tibble(ids = 1:ppf$n.tree, trees = "trees", OOB.error.tree = ppf$oob.error.tree[,1])
 
 
 n.class <- ppf$train %>% select_(ppf$class.var) %>% unique() %>% nrow()

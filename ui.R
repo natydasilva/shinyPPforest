@@ -37,60 +37,70 @@ shinyUI(fluidPage(
          ")
     )),
   
-  tabsetPanel(
-    tabPanel(
-      "Individual cases",
-      
-      fluidRow(column(width = 12,
-                      radioButtons(inputId="paropt", label="Parallel", 
-                                   choices=c("Parallel","Enhanced parallel"), selected = "Parallel",
-                                   inline = TRUE)
-                      
-      )),
-      fluidRow(column(
-        width = 11,
-        plotlyOutput("parallel", height = 400)
-      )),
-      fluidRow(
-        column(
-          width = 4, align = "center", offset = 2,
-          plotlyOutput("mdsplot", height = 400)
-        ), column(
-          width = 4,align = "center",
-          plotlyOutput("sideplot", height = 400)
-        )
-        
-      ),
-      
-       if(n.class>2){
-      if(n.class==3){
-        fluidRow(
-          column(width = 4,
-                 plotlyOutput("ternaryplot", height = 400)))
-      }else{
-      fluidRow(
-        column(width = 11,
-               plotlyOutput("ternaryplot", height = 400)))
-      }
-         }
-    )
-    ,
+  # tabsetPanel(
+  #   tabPanel(
+  #     "Individual cases",
+  #     
+  #     fluidRow(column(width = 12,
+  #                     radioButtons(inputId="paropt", label="Parallel", 
+  #                                  choices=c("Parallel","Enhanced parallel"), selected = "Parallel",
+  #                                  inline = TRUE)
+  #                     
+  #     )),
+  #     fluidRow(column(
+  #       width = 11,
+  #       plotlyOutput("parallel", height = 400)
+  #     )),
+  #     fluidRow(
+  #       column(
+  #         width = 4, align = "center", offset = 2,
+  #         plotlyOutput("mdsplot", height = 400)
+  #       ), column(
+  #         width = 4,align = "center",
+  #         plotlyOutput("sideplot", height = 400)
+  #       )
+  #       
+  #     ),
+  #     
+  #      if(n.class>2){
+  #     if(n.class==3){
+  #       fluidRow(
+  #         column(width = 4,
+  #                plotlyOutput("ternaryplot", height = 400)))
+  #     }else{
+  #     fluidRow(
+  #       column(width = 11,
+  #              plotlyOutput("ternaryplot", height = 400)))
+  #     }
+  #        }
+  #   )
+  #   ,
 
     tabPanel(
       "Models",
       
       fluidRow(
-        column(width = 7,
-        plotlyOutput('boxtreeerror',height = 150))
+        column(width = 3,
+               plotlyOutput('boxtreeerror',height = 500)) ,
+         column(width = 7,
+        #        numericInput("m", "Number of nodes:", 3, min = 1, max =6,  width= "100px"),
+        plotlyOutput("importancetree",height = 500)),
         
         ), 
       fluidRow(
-        column(width = 5,
-               plotOutput("plottree",height = 500)), 
         column(width = 7,
-               plotlyOutput("importancetree",height = 500)
-                 
-          )
+               plotOutput("plottree",height = 500)),
+        column(width = 3,
+                      sidebarPanel(
+                        
+                        selectInput(
+                          'nnode', 'Select nodes', choices = bnf(ppf[[8]][[494]])$node, selected =bnf(ppf[[8]][[494]])$node[1:3],multiple =
+                            TRUE
+                        ), actionButton("goButtonode", "Go!"), width = '100px'),
+               )
+               
+        
+        
       ),
       fluidRow(
         if(sum(ppf[[8]][[1]]$Tree.Struct[,4]!=0) == 1){
@@ -119,54 +129,54 @@ shinyUI(fluidPage(
 
       )
     )
-    ,
-    tabPanel(
-      "Performance comparison",
-      fluidRow(column(width = 12,sidebarPanel(
-        selectizeInput(
-          'xcol', 'Select Class', as.character(lev) , selected = lev,multiple =
-            TRUE
-        ), actionButton("goButton", "Go!")
-      ))),
-      fluidRow(
-        column(width = 4,
-               plotlyOutput("siderfpp",height = 400)),
-        column(width = 4,
-               plotlyOutput("plot_rocpp",height = 400)),
-        column(width = 4,
-               plotlyOutput("plot_oobpp",height = 400))
-
-      ),
-      fluidRow(
-        column(width = 4,
-               plotlyOutput("siderf",height = 400)),
-        column(width = 4,
-               plotlyOutput("plot_rocrf",height = 400)),
-        column(width = 4,
-               plotlyOutput("plot_oobrf",height = 400))
-      ),
-
-      fluidRow(column(width = 12,
-                      radioButtons(inputId="importance", label="Importance", 
-                                   choices=c("PPforest impo","PPforest avgtr","Permuted"), selected="PPforest impo",
-                                   inline = TRUE)
-  
-      )),
-
-      fluidRow(
-        column(width = 4, align = "center", offset = 2,
-               plotlyOutput("plot_impopp",height = 400)),
-
-        column(width = 4,
-               plotlyOutput("plot_imporf",height = 400))
-
-      ),
-      fluidRow(column(width = 6,align = "center",
-                      tableOutput('tablepp')),
-               column(width = 6,
-                      tableOutput('tablerf')))
-    )
+    # ,
+    # tabPanel(
+    #   "Performance comparison",
+    #   fluidRow(column(width = 12,sidebarPanel(
+    #     selectizeInput(
+    #       'xcol', 'Select Class', as.character(lev) , selected = lev,multiple =
+    #         TRUE
+    #     ), actionButton("goButton", "Go!")
+    #   ))),
+    #   fluidRow(
+    #     column(width = 4,
+    #            plotlyOutput("siderfpp",height = 400)),
+    #     column(width = 4,
+    #            plotlyOutput("plot_rocpp",height = 400)),
+    #     column(width = 4,
+    #            plotlyOutput("plot_oobpp",height = 400))
+    # 
+    #   ),
+    #   fluidRow(
+    #     column(width = 4,
+    #            plotlyOutput("siderf",height = 400)),
+    #     column(width = 4,
+    #            plotlyOutput("plot_rocrf",height = 400)),
+    #     column(width = 4,
+    #            plotlyOutput("plot_oobrf",height = 400))
+    #   ),
+    # 
+    #   fluidRow(column(width = 12,
+    #                   radioButtons(inputId="importance", label="Importance", 
+    #                                choices=c("PPforest impo","PPforest avgtr","Permuted"), selected="PPforest impo",
+    #                                inline = TRUE)
+    # 
+    #   )),
+    # 
+    #   fluidRow(
+    #     column(width = 4, align = "center", offset = 2,
+    #            plotlyOutput("plot_impopp",height = 400)),
+    # 
+    #     column(width = 4,
+    #            plotlyOutput("plot_imporf",height = 400))
+    # 
+    #   ),
+    #   fluidRow(column(width = 6,align = "center",
+    #                   tableOutput('tablepp')),
+    #            column(width = 6,
+    #                   tableOutput('tablerf')))
+    # )
     
-  )
+  # )
     )
 )

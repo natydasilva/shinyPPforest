@@ -27,7 +27,7 @@ rf <- rf_fish
 impoaver <- impoaver_fish
 impoinfo <- impoinfo_fish
 
-
+ tr<- 494
 #############################
 #         SERVER            #
 #############################
@@ -68,9 +68,8 @@ shinyServer( function(input, output){
   })
   
  
-
-  rv3 <- reactiveValues(bestnode = data.frame(ids = 1:(nrow(bestnode) / sum(length(
-    unique( bestnode$node )))), bestnode %>% 
+#ids numbers of trees
+  rv3 <- reactiveValues(bestnode = data.frame(ids = 1:ppf$n.tree, bestnode %>% 
       dplyr::filter(node == 1), ooberr = ppf$oob.error.tree), fill = FALSE)
   
   
@@ -82,19 +81,26 @@ shinyServer( function(input, output){
   
   observeEvent(event_data("plotly_click", source = "dibu"), {
     k <- event_data("plotly_click", source = "dibu")$key
+    
+    selectnode <-  bnf(ppf[[8]][[k]])$node
     if (any(k %in% unique(rv3$bestnode$ids))) {
       selectedbest <- rv3$bestnode$ids %in% k
+      
     }
     updateRV3(selectedbest)
+    updateSelectInput(inputId = "nnode", choices = selectnode , selected =selectnode[1:3])
   })
   
 
+  
   
   selectedparopt <- reactive({
     input$paropt
   })
   
-  
+  selectnnode<- reactive({
+    isolate(input$nnode)
+  })
   
   
   ############################
@@ -276,86 +282,133 @@ shinyServer( function(input, output){
   ################################
   #             Tab 2            #
   ################################
-  
-  selectedDatanode <- reactive({
-    input$goButton2
-    isolate(input$xnode)
-  
-    })
 
+  
+
+  selectednodes <- reactive({
+    input$goButtonode
+  })  
+
+  # ppnode <-reactive({
+  #   as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])[!is.na(as.numeric(rv3$bestnode$ids[rv3$bestnode$fill]))]
+  # })
+  # 
+  # observeEvent(ppnode(), {
+  #   elect<- bnf(ppf[[8]][[]])$node
+  #   updateSelectInput(inputId = "nnode", choices = elect ) 
+  # })
+  
+  
+
+   
+
+ 
+  
   #Importance
   output$importancetree <- renderPlotly({
-  
- 
-    if((length(unique(impo.pl$node)) > 3)& (length(yy2) == 0 )){
-tr<- 494
-yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
-yy2 <- yy1[!is.na(yy1)]
+    
+    yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
+    yy2 <- yy1[!is.na(yy1)]
+    
+    #Using node id for the selected tree
+    
+    # if((length(unique(impofn(tr)[impofn(tr)$id==tr, "node"])) > 3)&(length(yy2) ==0 )){
+    if ((length(yy2)==0 )){
        # impo.pl <- impo.pl %>% filter(node == selectedDatanode()) 
-      impo.pl <- impo.pl %>% filter(node == node[1:3]) 
-      
+      impo.pl <- impofn(tr) %>% group_by(ids) %>% filter(node == node[1:3]) 
+      impo.pl$nodetr <- rep(impofn(tr)[impofn(tr)$ids==tr, "node"][1:3], length(unique(impofn(tr)$var))*ppf$n.tree)
+    
     p <- ggplot(filter(impo.pl,!ids %in% tr), aes( x = Variables, y = Abs.importance, group = ids,
                                                   key = ids, var = var)) +
-      geom_jitter(height = 0, size = I(2), alpha = 0.3) + facet_grid(node ~ .) +
+      geom_jitter(height = 0, size = I(2), alpha = 0.3) + facet_grid(nodetr ~ .) +
       scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
       theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5 ) )
 
     p <- p + geom_jitter( data = filter(impo.pl, ids %in% tr), color = "red",height = 0) +
-      facet_grid(node ~ .) + scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) +
+      facet_grid(nodetr ~ .) + scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) +
       ggtitle("Importance variable for each tree") +
       theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1)
 
     }
     
-    if ((length(yy2) >0 )) {
+    if ((length(yy2) >0 ) | selectednodes()==TRUE) {
   
+# 
+#       node <- ppf$output.trees[[yy2]]$Tree.Struct[ppf$output.trees[[yy2]]$Tree.Struct[,"Index"]!=0, "id"]
+#       bnf <- function(x) {
+#         bn <- abs(x$projbest.node)
+#         bn[bn == 0] <- NA
+#         data.frame(node = node, bn)
+#       }
+#       bestnode <- ppf[["output.trees"]] %>%  lapply(bnf) %>% bind_rows()
+# 
+# 
+#       colnames(bestnode)[-1] <- colnames(ppf$train[ , -which(colnames(ppf$train)==ppf$class.var)])
+#       bestnode$node <- as.factor(bestnode$node)
+
+      #ACÁ esta el problema chan...
+      # impo.pl <- bestnode %>%
+      #   mutate(ids = rep(1:ppf$n.tree,each = nrow(ppf[[8]][[yy2]]$projbest.node) ) ) %>%
+      #   gather(var, value, -ids, -node)
+      # impo.pl$Variables <- as.numeric(as.factor(impo.pl$var))
+      # impo.pl$Abs.importance <- round(impo.pl$value,2)
       
-      node <- ppf$output.trees[[yy2]]$Tree.Struct[ppf$output.trees[[yy2]]$Tree.Struct[,"Index"]!=0, "id"]
-      bnf <- function(x) {
-        bn <- abs(x$projbest.node)
-        bn[bn == 0] <- NA
-        data.frame(node = node, bn)
-      }
-      bestnode <- ppf[["output.trees"]] %>%  lapply(bnf) %>% bind_rows()
+      # dat <-   impofn(tr) %>% dplyr::filter(!ids %in% yy2)
+      # dat2 <-   impofn(tr) %>% dplyr::filter(ids %in% yy2)
+      
+      # impo.pl <- impofn(yy2) %>% dplyr::filter(!ids %in% yy2) %>% group_by(ids) %>% filter(node == node[1:3]) 
+      # impo.pl$nodetr <- rep(impofn(yy2)[impofn(yy2)$ids==yy2, "node"][1:3], length(unique(impofn(yy2)$var))*ppf$n.tree)
+      # 
+      # p <- ggplot(impo.pl, aes(x = Variables , y = Abs.importance, key = ids,var.= var)) +
+      #   geom_jitter(height = 0, size = I(2),alpha = 0.3) + facet_grid(nodetr[1:3] ~ .) +
+      #   scale_x_discrete(limits = levels(as.factor(impofn(tr)$var) ) ) + ggtitle("Importance variable for each tree") +
+      #   theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1 )
+      # 
+      # p <-  p  + facet_grid(nodetr[1:3] ~ .) + geom_jitter(height = 0, data = dat2,  color = "red" )
+      # 
+      # 
+      # 
       
       
-      colnames(bestnode)[-1] <- colnames(ppf$train[ , -which(colnames(ppf$train)==ppf$class.var)])
-      bestnode$node <- as.factor(bestnode$node)
+      impo.pl <- impofn(yy2) %>% group_by(ids) %>% filter(node %in% node[as.numeric(input$nnode)]) 
+      impo.pl$nodetr <- rep(as.numeric(input$nnode), length(unique(impofn(yy2)$var))*ppf$n.tree)
       
-      impo.pl <- bestnode %>% 
-        mutate(ids = rep(1:ppf$n.tree,each = nrow(ppf[[8]][[yy2]]$projbest.node) ) ) %>% 
-        gather(var, value, -ids, -node) 
-      impo.pl$Variables <- as.numeric(as.factor(impo.pl$var))
-      impo.pl$Abs.importance <- round(impo.pl$value,2)
-      
-      dat <-   impo.pl %>% dplyr::filter(!ids %in% yy2)
-      dat2 <-   impo.pl %>% dplyr::filter(ids %in% yy2)
-      p <- ggplot(dat, aes(x = Variables , y = Abs.importance, key = ids,var.= var)) +
-        geom_jitter(height = 0, size = I(2),alpha = 0.3) + facet_grid(node[1:3] ~ .) +
+      p <- ggplot(filter(impo.pl,!ids %in% yy2), aes( x = Variables, y = Abs.importance, group = ids,
+                                                     key = ids, var = var)) +
+        geom_jitter(height = 0, size = I(2), alpha = 0.3) + facet_grid(nodetr ~ .) +
         scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
-        theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1 )
-
-      p <-  p  + facet_grid(node[1:3] ~ .) + geom_jitter(height = 0, data = dat2,  color = "red" )
-
-    
-  }
+        theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5 ) )
+      
+      p <- p + geom_jitter( data = filter(impo.pl, ids %in% yy2), color = "red",height = 0) +
+        facet_grid(nodetr ~ .) + scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) +
+        ggtitle("Importance variable for each tree") +
+        theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1)
+      
+      
+      
+        
+    }
+    # if ((input$m!=3) &(length(yy2)==0 )) {
+    #   impo.pl <- impofn(tr) %>% group_by(ids) %>% filter(node == node[1:input$m]) 
+    #   impo.pl$nodetr <- rep(impofn(tr)[impofn(tr)$ids==tr, "node"][1:input$m],times=length(unique(impofn(tr)$var))*ppf$n.tree)
+    #   
+    #   p <- ggplot(filter(impo.pl,!ids %in%tr), aes( x = Variables, y = Abs.importance, group = ids,
+    #                                                   key = ids, var = var)) +
+    #     geom_jitter(height = 0, size = I(2), alpha = 0.3) + facet_grid(nodetr ~ .) +
+    #     scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
+    #     theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5 ) )
+    #   
+    #   p <- p + geom_jitter( data = filter(impo.pl, ids %in% yy2), color = "red",height = 0) +
+    #     facet_grid(nodetr ~ .) + scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) +
+    #     ggtitle("Importance variable for each tree") +
+    #     theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1)
+    #   
+    #   
+    # }
     ggplotly(p,tooltip = c("var","y","key"), source = "dibu")
   })
 
-  #Density
-  output$plotdensity <- renderPlotly({
-    yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
-    yy2 <- yy1[!is.na(yy1)]
 
-    if (length(yy2) > 0) {
-
-      PPtree_dens(ppf, yy2) %>% layout(dragmode = "select")
-    }else{
-      PPtree_dens(ppf, tr) %>% layout(dragmode = "select")
-
-    }
-
-  })
 
   #Tree structure with PPtreeViz
   output$plottree <- renderPlot({
@@ -385,10 +438,10 @@ yy2 <- yy1[!is.na(yy1)]
           x = trees, y = OOB.error.tree, fill = trees, key = ids
         )) + geom_boxplot() + scale_fill_manual(values = "#ffffff") +
         guides(fill = FALSE) +
-        coord_flip()  +   geom_point(
+         geom_point(
           aes(y = error),key=yy2,alpha = 0.1,size = I(3),color = I("red")
-        ) + geom_jitter(data = error.tree, aes(y = OOB.error.tree)
-                       , alpha = 0.3, size = I(1), color = I("black")) + labs(x = " ", y = "OOB error trees") 
+        ) + geom_jitter(data = error.tree, aes(y = OOB.error.tree, text = paste0('oob.error',sep = " ", round(OOB.error.tree, 2)))
+                       , alpha = 0.3, size = I(1), color = I("black")) + labs(x = " ", y = "OOB error tree") 
       pp<- p+theme(axis.title.y=element_blank(),
                    axis.text.y=element_blank(),
                    axis.ticks.y=element_blank(),
@@ -396,37 +449,56 @@ yy2 <- yy1[!is.na(yy1)]
       
    
      
-      ggplotly(pp,tooltip =  c("y"),source = "dibu") 
+      ggplotly(pp,tooltip =  'text',source = "dibu") 
       
     }else{
       error <- round(ppf$oob.error.tree[tr], 3)
       p <- ggplot(error.tree, aes(x = trees, y = OOB.error.tree,fill = trees,  key = ids)) + geom_boxplot() +
         scale_fill_manual(values = "#ffffff") +
         guides(fill = FALSE) +
-        coord_flip()  +   geom_point(
-          aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + geom_jitter(aes(y = OOB.error.tree)
+          geom_point(
+          aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + geom_jitter(aes(y = OOB.error.tree,text = paste0('oob.error',sep = " ",round(OOB.error.tree, 2)))
           , alpha = 0.3, size = I(1),color = I("black"))  +
-        labs(x = "", y = "OOB error trees")  
+        labs(x = "", y = "OOB error tree")  
        pp<- p+theme(axis.title.y=element_blank(),
                     axis.text.y=element_blank(),
                     axis.ticks.y=element_blank(),
                     legend.title =element_blank() )+ggtitle("Boxplot")
        
 
-      ggplotly(pp,tooltip = c("y"),source = "dibu") 
+      ggplotly(pp,tooltip = 'text',source = "dibu") 
      
 
     }
 
+  })
+  
+
+  
+  
+  #Density
+  output$plotdensity <- renderPlotly({
+    yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
+    yy2 <- yy1[!is.na(yy1)]
+    
+  
+    if(length(yy2) > 0 |selectednodes()==TRUE){
+      
+      PPtree_dens(ppf, yy2, nodes = as.numeric(input$nnode)) 
+    }else{
+      PPtree_dens(ppf, tr) %>% layout(dragmode = "select")
+    }
+ 
+    
   })
 
   #Mosaic plot
   output$plotmosaic <- renderPlotly({
     yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
     yy2 <- yy1[!is.na(yy1)]
-
-    if (length(yy2) > 0) {
-      PPtree_mosaic(ppf, yy2) %>% layout(dragmode = "select")
+    
+    if(length(yy2) > 0 |selectednodes()==TRUE){
+      PPtree_mosaic(ppf, yy2, nodes= as.numeric(input$nnode)) 
     }else{
       PPtree_mosaic(ppf, tr) %>% layout(dragmode = "select")
 
