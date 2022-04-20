@@ -287,20 +287,12 @@ shinyServer( function(input, output){
 
   selectednodes <- reactive({
     input$goButtonode
+    isolate(input$nnode)
   })  
 
-  # ppnode <-reactive({
-  #   as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])[!is.na(as.numeric(rv3$bestnode$ids[rv3$bestnode$fill]))]
-  # })
-  # 
-  # observeEvent(ppnode(), {
-  #   elect<- bnf(ppf[[8]][[]])$node
-  #   updateSelectInput(inputId = "nnode", choices = elect ) 
-  # })
-  
+
   
 
-   
 
  
   
@@ -310,66 +302,8 @@ shinyServer( function(input, output){
     yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
     yy2 <- yy1[!is.na(yy1)]
     
-    #Using node id for the selected tree
-    
-    # if((length(unique(impofn(tr)[impofn(tr)$id==tr, "node"])) > 3)&(length(yy2) ==0 )){
-    if ((length(yy2)==0 )){
-       # impo.pl <- impo.pl %>% filter(node == selectedDatanode()) 
-      impo.pl <- impofn(tr) %>% group_by(ids) %>% filter(node == node[1:3]) 
-      impo.pl$nodetr <- rep(impofn(tr)[impofn(tr)$ids==tr, "node"][1:3], length(unique(impofn(tr)$var))*ppf$n.tree)
-    
-    p <- ggplot(filter(impo.pl,!ids %in% tr), aes( x = Variables, y = Abs.importance, group = ids,
-                                                  key = ids, var = var)) +
-      geom_jitter(height = 0, size = I(2), alpha = 0.3) + facet_grid(nodetr ~ .) +
-      scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
-      theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5 ) )
-
-    p <- p + geom_jitter( data = filter(impo.pl, ids %in% tr), color = "red",height = 0) +
-      facet_grid(nodetr ~ .) + scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) +
-      ggtitle("Importance variable for each tree") +
-      theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1)
-
-    }
-    
     if ((length(yy2) >0 ) | selectednodes()==TRUE) {
   
-# 
-#       node <- ppf$output.trees[[yy2]]$Tree.Struct[ppf$output.trees[[yy2]]$Tree.Struct[,"Index"]!=0, "id"]
-#       bnf <- function(x) {
-#         bn <- abs(x$projbest.node)
-#         bn[bn == 0] <- NA
-#         data.frame(node = node, bn)
-#       }
-#       bestnode <- ppf[["output.trees"]] %>%  lapply(bnf) %>% bind_rows()
-# 
-# 
-#       colnames(bestnode)[-1] <- colnames(ppf$train[ , -which(colnames(ppf$train)==ppf$class.var)])
-#       bestnode$node <- as.factor(bestnode$node)
-
-      #ACÁ esta el problema chan...
-      # impo.pl <- bestnode %>%
-      #   mutate(ids = rep(1:ppf$n.tree,each = nrow(ppf[[8]][[yy2]]$projbest.node) ) ) %>%
-      #   gather(var, value, -ids, -node)
-      # impo.pl$Variables <- as.numeric(as.factor(impo.pl$var))
-      # impo.pl$Abs.importance <- round(impo.pl$value,2)
-      
-      # dat <-   impofn(tr) %>% dplyr::filter(!ids %in% yy2)
-      # dat2 <-   impofn(tr) %>% dplyr::filter(ids %in% yy2)
-      
-      # impo.pl <- impofn(yy2) %>% dplyr::filter(!ids %in% yy2) %>% group_by(ids) %>% filter(node == node[1:3]) 
-      # impo.pl$nodetr <- rep(impofn(yy2)[impofn(yy2)$ids==yy2, "node"][1:3], length(unique(impofn(yy2)$var))*ppf$n.tree)
-      # 
-      # p <- ggplot(impo.pl, aes(x = Variables , y = Abs.importance, key = ids,var.= var)) +
-      #   geom_jitter(height = 0, size = I(2),alpha = 0.3) + facet_grid(nodetr[1:3] ~ .) +
-      #   scale_x_discrete(limits = levels(as.factor(impofn(tr)$var) ) ) + ggtitle("Importance variable for each tree") +
-      #   theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1 )
-      # 
-      # p <-  p  + facet_grid(nodetr[1:3] ~ .) + geom_jitter(height = 0, data = dat2,  color = "red" )
-      # 
-      # 
-      # 
-      
-      
       impo.pl <- impofn(yy2) %>% group_by(ids) %>% filter(node %in% node[as.numeric(input$nnode)]) 
       impo.pl$nodetr <- rep(as.numeric(input$nnode), length(unique(impofn(yy2)$var))*ppf$n.tree)
       
@@ -387,6 +321,28 @@ shinyServer( function(input, output){
       
       
         
+    }else{
+      
+      
+      #Using node id for the selected tree
+      
+      # if((length(unique(impofn(tr)[impofn(tr)$id==tr, "node"])) > 3)&(length(yy2) ==0 )){
+      
+      # impo.pl <- impo.pl %>% filter(node == selectedDatanode()) 
+      impo.pl <- impofn(tr) %>% group_by(ids) %>% filter(node %in% node[1:3]) 
+      impo.pl$nodetr <- rep(impofn(tr)[impofn(tr)$ids==tr, "node"][1:3], length(unique(impofn(tr)$var))*ppf$n.tree)
+      
+      p <- ggplot(filter(impo.pl,!ids %in% tr), aes( x = Variables, y = Abs.importance, group = ids,
+                                                     key = ids, var = var)) +
+        geom_jitter(height = 0, size = I(2), alpha = 0.3) + facet_grid(nodetr ~ .) +
+        scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
+        theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5 ) )
+      
+      p <- p + geom_jitter( data = filter(impo.pl, ids %in% tr), color = "red",height = 0) +
+        facet_grid(nodetr ~ .) + scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) +
+        ggtitle("Importance variable for each tree") +
+        theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1)
+      
     }
     # if ((input$m!=3) &(length(yy2)==0 )) {
     #   impo.pl <- impofn(tr) %>% group_by(ids) %>% filter(node == node[1:input$m]) 
@@ -440,7 +396,7 @@ shinyServer( function(input, output){
         guides(fill = FALSE) +
          geom_point(
           aes(y = error),key=yy2,alpha = 0.1,size = I(3),color = I("red")
-        ) + geom_jitter(data = error.tree, aes(y = OOB.error.tree, text = paste0('oob.error',sep = " ", round(OOB.error.tree, 2)))
+        ) + coord_flip()+geom_jitter(data = error.tree, aes(y = OOB.error.tree, text = paste0('oob.error',sep = " ", round(OOB.error.tree, 2)))
                        , alpha = 0.3, size = I(1), color = I("black")) + labs(x = " ", y = "OOB error tree") 
       pp<- p+theme(axis.title.y=element_blank(),
                    axis.text.y=element_blank(),
@@ -457,7 +413,7 @@ shinyServer( function(input, output){
         scale_fill_manual(values = "#ffffff") +
         guides(fill = FALSE) +
           geom_point(
-          aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + geom_jitter(aes(y = OOB.error.tree,text = paste0('oob.error',sep = " ",round(OOB.error.tree, 2)))
+          aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + coord_flip()+ geom_jitter(aes(y = OOB.error.tree,text = paste0('oob.error',sep = " ",round(OOB.error.tree, 2)))
           , alpha = 0.3, size = I(1),color = I("black"))  +
         labs(x = "", y = "OOB error tree")  
        pp<- p+theme(axis.title.y=element_blank(),

@@ -467,7 +467,7 @@ ternaryshell2 <- function(gg1, gg2, ppf, sp = length(unique(ppf$train[,ppf$class
 ##Importance tree
 impofn <- function(tr){
 impo <- bestnode %>% 
-  mutate(ids = rep(1:ppf$n.tree,each = nrow(ppf[[8]][[tr]]$projbest.node) ) ) %>% 
+  mutate(ids = rep(1:ppf$n.tree, each = nrow(ppf[[8]][[tr]]$projbest.node) ) ) %>% 
   gather(var, value, -ids, -node) 
 impo$Variables <- as.numeric(as.factor(impo$var))
 impo$Abs.importance <- round(impo$value,2)

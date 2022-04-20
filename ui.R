@@ -80,28 +80,25 @@ shinyUI(fluidPage(
       "Models",
       
       fluidRow(
-        column(width = 3,
-               plotlyOutput('boxtreeerror',height = 500)) ,
-         column(width = 7,
-        #        numericInput("m", "Number of nodes:", 3, min = 1, max =6,  width= "100px"),
-        plotlyOutput("importancetree",height = 500)),
-        
-        ), 
-      fluidRow(
         column(width = 7,
-               plotOutput("plottree",height = 500)),
-        column(width = 3,
-                      sidebarPanel(
-                        
-                        selectInput(
-                          'nnode', 'Select nodes', choices = bnf(ppf[[8]][[494]])$node, selected =bnf(ppf[[8]][[494]])$node[1:3],multiple =
-                            TRUE
-                        ), actionButton("goButtonode", "Go!"), width = '100px'),
-               )
+               plotlyOutput('boxtreeerror',height = 150)) ,
+        column(width = 4,
+               sidebarPanel(
+                 
+                 selectInput(
+                   'nnode', 'Select nodes', choices = bnf(ppf[[8]][[494]])$node, selected =bnf(ppf[[8]][[494]])$node[1:3],
+                   multiple = TRUE
+                 ), actionButton("goButtonode", "Go!"), width = '100px'),
+        )),
+         
+         
+      fluidRow(column(width = 7,
+                      plotlyOutput("importancetree",height = 500)),
                
-        
-        
-      ),
+        column(width = 4,
+               plotOutput("plottree",height = 500))),
+             
+               
       fluidRow(
         if(sum(ppf[[8]][[1]]$Tree.Struct[,4]!=0) == 1){
           column(width = 4,
