@@ -100,7 +100,7 @@ PPtree_dens <- function(ppf, tr, nodes = NULL) {
     levels(dat_pl$Class) <-  levels(as.factor(ppf$train[ppf$class.var][, 1]))
   }
   
-  p1 <- dat_pl %>% filter(node.id %in%nodes) %>%
+  p1 <- dat_pl %>% filter(node.id %in%nodes) %>%mutate(node.id = paste("Node",node.id)) %>% 
     ggplot( aes(  x = proj.data, group = Class, fill = Class ) ) + 
     geom_density(alpha = .5) + facet_grid(~ node.id, scales = 'free') + 
     scale_fill_manual(values = myColors) + geom_vline(aes(xintercept = cut),
@@ -140,7 +140,8 @@ PPtree_mosaic <- function(ppf,tr, nodes = NULL){
   dat_mosaic <- data.frame( with(dat_pl, table(Class, Dir,node.id) ) )
   
   
-  p1 <- dat_mosaic %>% filter(node.id %in%nodes) %>% ggplot() + 
+  p1 <- dat_mosaic %>% filter(node.id %in%nodes) %>%mutate(node.id = paste("Node",node.id)) %>% 
+    ggplot() + 
     geom_mosaic( aes(weight = Freq, x = product(Class,Dir) ,fill = Class),offset=0.007)+facet_grid(~node.id)+
     scale_fill_manual(values = myColors) + theme(legend.position="none",axis.text.x  = element_text(angle=90, vjust=0.5),aspect.ratio = 1) +xlab("Class")
   

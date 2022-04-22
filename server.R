@@ -305,15 +305,16 @@ shinyServer( function(input, output){
     if ((length(yy2) >0 ) | selectednodes()==TRUE) {
   
       impo.pl <- impofn(yy2) %>% group_by(ids) %>% filter(node %in% node[as.numeric(input$nnode)]) 
-      impo.pl$nodetr <- rep(as.numeric(input$nnode), length(unique(impofn(yy2)$var))*ppf$n.tree)
+      impo.pl$nodetr <- rep(as.numeric(input$nnode), length(unique(impofn(yy2)$var))*ppf$n.tree) 
+      aux.impo <- impo.pl %>% mutate(nodetr = paste("Node",nodetr))
       
-      p <- ggplot(filter(impo.pl,!ids %in% yy2), aes( x = Variables, y = Abs.importance, group = ids,
+      p <- ggplot(filter(aux.impo,!ids %in% yy2), aes( x = Variables, y = Abs.importance, group = ids,
                                                      key = ids, var = var)) +
         geom_jitter(height = 0, size = I(2), alpha = 0.3) + facet_grid(nodetr ~ .) +
         scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5 ) )
       
-      p <- p + geom_jitter( data = filter(impo.pl, ids %in% yy2), color = "red",height = 0) +
+      p <- p + geom_jitter( data = filter(aux.impo, ids %in% yy2), color = "red",height = 0) +
         facet_grid(nodetr ~ .) + scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) +
         ggtitle("Importance variable for each tree") +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1)
@@ -332,13 +333,15 @@ shinyServer( function(input, output){
       impo.pl <- impofn(tr) %>% group_by(ids) %>% filter(node %in% node[1:3]) 
       impo.pl$nodetr <- rep(impofn(tr)[impofn(tr)$ids==tr, "node"][1:3], length(unique(impofn(tr)$var))*ppf$n.tree)
       
-      p <- ggplot(filter(impo.pl,!ids %in% tr), aes( x = Variables, y = Abs.importance, group = ids,
+      aux.impo <- impo.pl %>% mutate(nodetr = paste("Node",nodetr))
+        
+      p <- ggplot(filter(aux.impo,!ids %in% tr), aes( x = Variables, y = Abs.importance, group = ids,
                                                      key = ids, var = var)) +
         geom_jitter(height = 0, size = I(2), alpha = 0.3) + facet_grid(nodetr ~ .) +
         scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5 ) )
       
-      p <- p + geom_jitter( data = filter(impo.pl, ids %in% tr), color = "red",height = 0) +
+      p <- p + geom_jitter( data = filter(aux.impo, ids %in% tr), color = "red",height = 0) +
         facet_grid(nodetr ~ .) + scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) +
         ggtitle("Importance variable for each tree") +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1)
@@ -593,9 +596,10 @@ shinyServer( function(input, output){
 
     if (length(selectedData()) == length(unique(ppf$train[,ppf$class.var]))) {
 
-
-      p1 <- oob.pl %>% ggplot(aes( x = tree.id, y = OOB.error , colour = Class)) +
-        geom_point(alpha = .5) + geom_line(size = I(0.5), alpha = .5) + labs(y = "OOB error rate",
+      # oob.p %>% group_by(tree.id) %>% mutate(oob.rate = OOB.error/OOB.error[Class=="All"])
+      p1 <- oob.pl %>%
+        ggplot(aes( x = tree.id, y = OOB.error , colour = Class)) +
+        geom_line(size = I(0.5), alpha = .5) + labs(y = "OOB error rate",
                                                                              x = "Number of trees", title = "Cumulative OOB error") + ylim( c(0,1) ) +
         theme(legend.position = "none", aspect.ratio = 1) + scale_color_manual(values = myColors)
     }
@@ -605,11 +609,11 @@ shinyServer( function(input, output){
       dat_fil <-oob.pl %>% dplyr::filter(Class %in% selectedData())
 
       p1 <- dat %>% ggplot(aes( x = tree.id, y = OOB.error , colour = Class) ) +
-        geom_point(alpha = .1) + geom_line(size = I(0.1),alpha = .1) +
+      geom_line(size = I(0.5),alpha = .5) +
         labs(y = "OOB error rate", x = "Number of trees", title = "Cumulative OOB error") + ylim(c(0,1)) +
         theme(legend.position = "none", aspect.ratio = 1) + scale_color_manual(values = myColors)
 
-      p1 <- p1 + geom_point(data = dat_fil, alpha = .5, aes(x = tree.id, y = OOB.error, colour = Class)) + geom_line(data = dat_fil,alpha = .5)
+      p1 <- p1  + geom_line(data = dat_fil,alpha = .5)
 
     }
 
@@ -624,7 +628,7 @@ shinyServer( function(input, output){
     if (length(selectedData()) == length(unique(ppf$train[,ppf$class.var]))) {
       p <- dat_rf %>% mutate(Class = as.factor(Class)) %>%
         ggplot(aes(x = trees, y = OOB,colour = Class)) +
-        geom_point(alpha = .5) + geom_line(alpha = .5) +  scale_color_manual(values = myColors) +
+        geom_line(alpha = .5) +  scale_color_manual(values = myColors) +
         labs(y = "OOB error rate", x = "Number of trees", title = "Cumulative OOB error") + ylim(c(0,1)) +
         theme(legend.position = "none", aspect.ratio = 1) + scale_x_continuous(name = "Number of trees")
 
@@ -635,7 +639,7 @@ shinyServer( function(input, output){
 
       p <- dat %>% mutate(Class = as.factor(Class)) %>%
         ggplot(aes(x = trees, y = OOB,colour = Class)) +
-        geom_point(alpha = .1) + geom_line(alpha = .1) +  scale_color_manual(values = myColors) +
+        geom_line(alpha = .1) +  scale_color_manual(values = myColors) +
         labs(y = "OOB error rate", x = "Number of trees", title = "Cumulative OOB error") + ylim(c(0,1)) + theme(legend.position = "none", aspect.ratio = 1)
 
       p <- p + geom_point(data = dat_fil, aes(x = trees, y = OOB, colour = Class), alpha = .5) +
