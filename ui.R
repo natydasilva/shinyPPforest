@@ -53,11 +53,14 @@ shinyUI(fluidPage(
       )),
       fluidRow(
         column(
-          width = 4, align = "center", offset = 2,
-          plotlyOutput("mdsplot", height = 400)
-        ), column(
+          width = 1),
+        column(
+          width = 4, align = "center",
+          plotlyOutput("mdsplot", height = 500)
+        ),column(
+          width = 1), column(
           width = 4,align = "center",
-          plotlyOutput("sideplot", height = 400)
+          plotlyOutput("sideplot", height = 500)
         )
 
       ),

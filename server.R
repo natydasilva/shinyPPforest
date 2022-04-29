@@ -116,37 +116,44 @@ shinyServer( function(input, output){
     yy <- rv$data$ids[rv$data$fill]
     
     if(selectedparopt()%in%"Parallel"){
-    p <- ggplot(scale.dat.melt, aes(x = Variables, y = Value,
+    p <- ggplot(scale.dat.melt, aes(x = fct_reorder(var,Value, mean), y = Value,
                                     group = ids, key = ids, colour = Class, var = var)) +
-      geom_line(alpha = 0.3) + scale_x_discrete(limits = levels(as.factor(scale.dat.melt$var)), expand = c(0.01,0.01)) +
-      ggtitle("Data parallel plot ") + theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1) +
-      scale_colour_brewer(type = "qual", palette = "Dark2")
+      geom_line(alpha = 0.3) + scale_x_discrete( expand = c(0.01,0.01)) +
+      ggtitle("Data parallel plot ") + theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1,
+                                             panel.grid.major = element_line(color = 'grey', linetype = 'dotted'), panel.grid.major.y = element_blank()) +
+      scale_colour_brewer(type = "qual", palette = "Dark2") + labs(x = "Variables")
 
     if (length(yy) > 0) {
       dat <-   scale.dat.melt %>% dplyr::filter(ids %in% yy)
-      p <- ggplot(scale.dat.melt, aes(x = Variables, y = Value, 
+      p <- ggplot(scale.dat.melt, aes(x = fct_reorder(var,Value, mean), y = Value, 
                                       group = ids, key = ids, color = Class, var = var)) +
-        geom_line(alpha = 0.1) + scale_x_discrete(limits = levels(as.factor(scale.dat.melt$var)), expand = c(0.01,0.01)) + 
-        ggtitle("Data parallel plot") + theme(legend.position = "none",axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1) + 
-        scale_colour_brewer(type = "qual",palette = "Dark2")
+        geom_line(alpha = 0.1) + scale_x_discrete( expand = c(0.01,0.01)) + 
+        ggtitle("Data parallel plot") + theme(legend.position = "none",axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1,
+                                              panel.grid.major = element_line(color = 'grey', linetype = 'dotted'), panel.grid.major.y = element_blank()) + 
+        scale_colour_brewer(type = "qual",palette = "Dark2")+ labs(x = "Variables")
       
       p <- p + geom_line(data = dat) 
       }
     }else{
-      p <-  scale.dat.melt2 %>% arrange(Variables) %>%ggplot( aes(x = Variables, y = Value,
-                                                            group = ids, key = ids, colour = Class, var = var)) +
-        geom_line(alpha = 0.3) + scale_x_discrete(limits = levels(as.factor(scale.dat.melt2$var))[sample(length(levels(as.factor(scale.dat.melt2$var))))], expand = c(0.01,0.01)) +
-        ggtitle("Data parallel plot ") + theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5)) +
-        scale_colour_brewer(type = "qual", palette = "Dark2")
+      p <-  scale.dat.melt2 %>% 
+        ggplot( aes(x = fct_reorder(var,Value, mean), y = Value,
+                                      group = ids, key = ids, colour = Class, var = var)) +
+        geom_line(alpha = 0.3) + 
+        scale_x_discrete(expand = c(0.01,0.01)) +
+        ggtitle("Data parallel plot ") + theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5),
+                                               panel.grid.major = element_line(color = 'grey', linetype = 'dotted'), panel.grid.major.y = element_blank()) +
+        scale_colour_brewer(type = "qual", palette = "Dark2")+labs(x="Variables")
     
       
       if (length(yy) > 0) {
-        dat <-   scale.dat.melt2 %>% arrange(Variables)%>% dplyr::filter(ids %in% yy)
-        p <- scale.dat.melt2 %>% arrange(Variables)%>%ggplot( aes(x = Variables, y = Value,
+        dat <-   scale.dat.melt2  %>% dplyr::filter(ids %in% yy)
+        p <- scale.dat.melt2 %>% ggplot( aes(x = fct_reorder(var,Value, mean), y = Value,
                                                                   group = ids, key = ids, colour = Class, var = var)) +
-          geom_line(alpha = 0.3) + scale_x_discrete(limits = levels(as.factor(scale.dat.melt2$var))[sample(length(levels(as.factor(scale.dat.melt2$var))))], expand = c(0.01,0.01)) +
-          ggtitle("Data parallel plot ") + theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5)) +
-          scale_colour_brewer(type = "qual", palette = "Dark2")
+          geom_line(alpha = 0.3) + 
+          scale_x_discrete(expand = c(0.01,0.01)) +
+          ggtitle("Data parallel plot ") + theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5),
+                                                 panel.grid.major = element_line(color = 'grey', linetype = 'dotted'), panel.grid.major.y = element_blank()) +
+          scale_colour_brewer(type = "qual", palette = "Dark2") +labs(x="Variables")
         
         
         p <- p + geom_line(data = dat) 
@@ -256,7 +263,7 @@ shinyServer( function(input, output){
       
     }else{
       
-      t1 <-ternaryshell(gg1, ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 2)
+      t1 <- ternaryshell(gg1, ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 2)
       t2 <- ternaryshell(gg1, ppf, length(unique(ppf$train[,ppf$class.var]))-1, 1, 3)
       t3 <- ternaryshell(gg1, ppf, length(unique(ppf$train[,ppf$class.var]))-1, 2, 3)
       
@@ -271,7 +278,7 @@ shinyServer( function(input, output){
       
       }
       subplot(ggplotly(t1,tooltip = c("colour","x","y","key")), ggplotly(t2,tooltip = c("colour","x","y","key"))
-              ,ggplotly(t3,tooltip = c("colour","x","y","key")))
+              ,ggplotly(t3,tooltip = c("colour","x","y","key")), titleX=TRUE, titleY=TRUE)
     }
     
     
