@@ -285,7 +285,7 @@ if(!is.factor(ppf$train[,colcl] )){
 n.class <- ppf$train %>% select_(ppf$class.var) %>% unique() %>% nrow()
 lev <- ppf$train %>% select(ppf$class.var) %>%   sapply(levels) %>% as.factor() 
 
-k = 2
+ k = 2
 id <- diag(dim(ppf$train)[1])
 id <- id + 1 - ppf$proximity
 rf.mds <- stats::cmdscale(d = stats::as.dist(id), eig = TRUE,  k = k)

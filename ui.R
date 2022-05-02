@@ -157,7 +157,7 @@ shinyUI(fluidPage(
       ),
 
       fluidRow(column(width = 12,
-                      radioButtons(inputId="importance", label="Importance",
+                      radioButtons(inputId="importance", label="Select PPforest Importance",
                                    choices=c("PPforest impo","PPforest avgtr","Permuted"), selected="PPforest impo",
                                    inline = TRUE)
 

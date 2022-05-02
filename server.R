@@ -672,7 +672,8 @@ shinyServer( function(input, output){
 
 
   output$plot_impopp <- renderPlotly({
-  
+    auximpo <-max(imp$imp2,impoaver$mean,impoinfo$mean, imp.pl$imp)
+    
     
     if(selectedDataimpo()%in%"PPforest impo"){
     
@@ -681,7 +682,8 @@ shinyServer( function(input, output){
         }
     p <- ggplot2::ggplot(impoinfo, ggplot2::aes(x = mean, y = variable)) +
       ggplot2::geom_point() + ggplot2::theme(aspect.ratio=1) + labs(x = "Importance",
-                                                                    y = "")
+                                                                    y = "", title = "PPforest importance")+
+      xlim(c(0, auximpo))
     }
         if(selectedDataimpo()%in%"PPforest avgtr"){
           
@@ -691,14 +693,17 @@ shinyServer( function(input, output){
          
            p <- ggplot2::ggplot(impoaver, ggplot2::aes(x = mean, y = variable)) +
              ggplot2::geom_point() + ggplot2::theme(aspect.ratio=1) + labs(x = "Importance",
-                                                                           y = "")
-      }else{
+                                                                           y = "",title = "PPforest average importance")+ 
+             xlim(c(0, auximpo))
+        }
+    if(selectedDataimpo()%in%"Permuted"){
 
     if(nrow(imp ) > 20){
     imp <- imp[1:20,]
       }
      p <- ggplot(data = imp, aes(imp2,nm) ) + geom_point() + labs(x = "Importance",
-                                                                         y = "")
+                                                                         y = "", title = "PPforest permuted importance") +
+       xlim(c(0, auximpo))
     }
     
                                                             
@@ -708,12 +713,15 @@ ggplotly(p)
 
 
   output$plot_imporf <- renderPlotly({
+    auximpo <-max(imp$imp2,impoaver$mean,impoinfo$mean, imp.pl$imp)
     if(nrow(imp )>20){
       p <- ggplot(data = imp.pl[1:20,], aes(imp,nm) ) + geom_point() +
-        labs(x = "Importance", y = "")
+        labs(x = "Importance", y = "", title="Random Forest Permuted Importance")+
+        xlim(c(0, auximpo))
     }else{
       p <- ggplot(data = imp.pl, aes(imp,nm) ) + geom_point() +
-        labs(x = "Importance", y = "") }
+        labs(x = "Importance", y = "", title="Random Forest Permuted Importance") +
+        xlim(c(0, auximpo))}
     ggplotly(p)
 
   })
