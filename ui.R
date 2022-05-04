@@ -1,6 +1,7 @@
 
 library(ggplot2)
 library(shiny)
+library(forcats)
 library(plotly)
 library(stringr)
 library(tidyr)

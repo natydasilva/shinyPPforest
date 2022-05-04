@@ -430,7 +430,7 @@ ternaryshell <- function(gg1, ppf, sp = length(unique(ppf$train[,ppf$class.var])
     ggplot(aes(x, y, color = Class, key = ids)) +
     geom_segment(data = edg, aes(x = x1, xend = x2,
                                  y = y1, yend = y2, key = NULL), color = "black") +
-    geom_point(size = I(3), alpha = .5) +
+    geom_point(size = I(2), alpha = .5) +
     labs(y = "",  x = "") +
     theme(legend.position = "none", aspect.ratio = 1) +
     scale_colour_brewer(type = "qual", palette = "Dark2") +
@@ -451,14 +451,14 @@ ternaryshell2 <- function(gg1, gg2, ppf, sp = length(unique(ppf$train[,ppf$class
     ggplot(aes(x, y, color = Class, key =ids)) + 
     geom_segment(data = edg, aes(x = x1, xend = x2,
                                  y = y1, yend = y2, key = NULL ), color = "black") +
-    geom_point(size = I(3), alpha = .1) +
+    geom_point(size = I(2), alpha = .1) +
     labs(y = "",  x = "") +
     theme(legend.position = "none", aspect.ratio = 1) +
     scale_colour_brewer(type = "qual", palette = "Dark2") +
     labs(x = paste0("T",dx,""), y = paste0("T",dy,"")) +
     theme(aspect.ratio = 1)
   
-  p1 +  geom_point(data = gg2 %>% filter(pair %in% paste(dx,dy, sep = "-") ), aes(x, y, color = Class, key =ids), size = I(3)) 
+  p1 +  geom_point(data = gg2 %>% filter(pair %in% paste(dx,dy, sep = "-") ), aes(x, y, color = Class, key =ids), size = I(2)) 
 }
 
 
