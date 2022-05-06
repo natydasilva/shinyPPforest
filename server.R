@@ -1,4 +1,6 @@
 library(ggplot2)
+library(graph)
+library(PairViz)
 library(shiny)
 library(plotly)
 library(stringr)
@@ -10,10 +12,8 @@ library(pROC)
 library(ggmosaic)
 library(devtools)
 library(PPtreeViz)
-library(devtools)
-library(graph)
-library(PairViz)
 library(PPforest)
+
 source("shinyplots.R")
 
 data.sources = list.files(pattern="*.Rdata")
@@ -188,7 +188,6 @@ shinyServer( function(input, output){
   
   #Jittered Side-by-side probability plot
   
-  
   output$sideplot <- renderPlotly({
     
     yy <- rv$data$ids[rv$data$fill]
@@ -222,7 +221,7 @@ shinyServer( function(input, output){
 
   })
   
-  
+  # Ternary plot
   output$ternaryplot <- renderPlotly({
     yy <- rv$data$ids[rv$data$fill]
     
@@ -233,12 +232,13 @@ shinyServer( function(input, output){
       
       edg <- data.frame(x1=pts[,1][s$edges[,1]], x2=pts[,1][s$edg[,2]],
                         y1=pts[,2][s$edg[,1]], y2=pts[,2][s$edg[,2]])
-      
+
       
       p <- ggplot(data = dat3.empt, aes(
         x = proj.vote.x, y = proj.vote.x.1, colour = Class, key = ids
       )) +  geom_blank() + geom_point(data = filter(dat3.empt, rep == 2), size = I(2), alpha = .5) + ylab("") +
-        xlab("") + geom_segment(data = edg, aes(x = x1, xend = x2, y = y1, yend = y2, key = NULL), color = "black") +
+        xlab("") + 
+        geom_segment(data = edg, aes(x = x1, xend = x2, y = y1, yend = y2, key = NULL), color = "black") +
       theme(legend.position = "none" , aspect.ratio = 1) + ggtitle("Vote matrix ") +
         scale_colour_brewer(type = "qual",palette = "Dark2") +labs(x = "T1", y ="T2") 
         
@@ -249,12 +249,12 @@ shinyServer( function(input, output){
         
         edg <- data.frame(x1=pts[,1][s$edges[,1]], x2=pts[,1][s$edg[,2]],
                           y1=pts[,2][s$edg[,1]], y2=pts[,2][s$edg[,2]])
-        
-        
+
+
         p <- ggplot(data = dat3.empt, aes( x = proj.vote.x, y = proj.vote.x.1, 
                                            colour = Class, key = ids)) + 
           geom_blank()  + geom_point(data = filter(dat3.empt, rep == 2), size = I(2), alpha = .1) + ylab("") + xlab("") + 
-          geom_segment(data = edg, aes(x = x1, xend = x2, y = y1, yend = y2, key = NULL), color = "black") +
+           geom_segment(data = edg, aes(x = x1, xend = x2, y = y1, yend = y2, key = NULL), color = "black") +
           theme(legend.position = "none", aspect.ratio = 1) + ggtitle("Vote matrix ternary plot") +
           scale_colour_brewer(type = "qual",palette = "Dark2")
         p <- p + geom_point(data = filter(dat33, rep == 2), size = I(2)) +labs(x = "T1", y ="T2") 

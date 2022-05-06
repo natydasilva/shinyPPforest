@@ -100,7 +100,7 @@ PPtree_dens <- function(ppf, tr, nodes = NULL) {
     levels(dat_pl$Class) <-  levels(as.factor(ppf$train[ppf$class.var][, 1]))
   }
   
-  p1 <- dat_pl %>% filter(node.id %in%nodes) %>%mutate(node.idd = paste("Node",node.id)) %>% 
+  p1 <- dat_pl %>% filter(node.id %in%nodes) %>%mutate(node.id = paste("Node",node.id)) %>% 
     ggplot( aes(  x = proj.data, group = Class, fill = Class ) ) + 
     geom_density(alpha = .5) + facet_grid(~ node.id, scales = 'free') + 
     scale_fill_manual(values = myColors) + geom_vline(aes(xintercept = cut),
@@ -425,11 +425,11 @@ ternaryshell <- function(gg1, ppf, sp = length(unique(ppf$train[,ppf$class.var])
   
   edg <- data.frame(x1=pts[,dx][s$edges[,1]], x2=pts[,dx][s$edg[,2]],
                     y1=pts[,dy][s$edg[,1]], y2=pts[,dy][s$edg[,2]])
-  
+
   p1  <- gg1 %>% filter(pair %in% paste(dx,dy, sep="-") ) %>%
     ggplot(aes(x, y, color = Class, key = ids)) +
-    geom_segment(data = edg, aes(x = x1, xend = x2,
-                                 y = y1, yend = y2, key = NULL), color = "black") +
+     geom_segment(data = edg, aes(x = x1, xend = x2,
+                                  y = y1, yend = y2, key = NULL), color = "black") +
     geom_point(size = I(2), alpha = .5) +
     labs(y = "",  x = "") +
     theme(legend.position = "none", aspect.ratio = 1) +
@@ -444,13 +444,13 @@ ternaryshell2 <- function(gg1, gg2, ppf, sp = length(unique(ppf$train[,ppf$class
   s <- simplex(sp)
   pts <- data.frame(s$points)
   
-  edg <- data.frame(x1 = pts[,dx][s$edges[,1]], x2 = pts[,dx][s$edg[,2]],
-                    y1 = pts[,dy][s$edg[,1]], y2 = pts[,dy][s$edg[,2]])
-  
+  # edg <- data.frame(x1 = pts[,dx][s$edges[,1]], x2 = pts[,dx][s$edg[,2]],
+  #                   y1 = pts[,dy][s$edg[,1]], y2 = pts[,dy][s$edg[,2]])
+  # 
   p1  <- gg1 %>% filter(pair %in% paste(dx,dy, sep="-") ) %>%
     ggplot(aes(x, y, color = Class, key =ids)) + 
-    geom_segment(data = edg, aes(x = x1, xend = x2,
-                                 y = y1, yend = y2, key = NULL ), color = "black") +
+    # geom_segment(data = edg, aes(x = x1, xend = x2,
+    #                              y = y1, yend = y2, key = NULL ), color = "black") +
     geom_point(size = I(2), alpha = .1) +
     labs(y = "",  x = "") +
     theme(legend.position = "none", aspect.ratio = 1) +
