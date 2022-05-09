@@ -168,18 +168,18 @@ shinyServer( function(input, output){
     
     p <- ggplot(data = rv$data, aes(x = MDS1, y = MDS2, 
                                     colour = Class, key = ids)) + 
-      geom_point(size = I(2),alpha = .5)  + theme(legend.position = "none", legend.text = element_text(angle = 90), legend.key = element_blank(), aspect.ratio =
+      geom_point(size = I(2.5),alpha = .5)  + theme(legend.position = "none", legend.text = element_text(angle = 90), legend.key = element_blank(), aspect.ratio =
                                                     1)  + labs(y = "MDS 2", x = "MDS 1", title = "Multidimensional Scaling") +
       scale_colour_brewer(type = "qual",palette = "Dark2")
     
     if (length(yy) > 0) {
       dat <- rv$data %>% dplyr::filter(ids %in% yy)
       p <- ggplot(data = rv$data, aes(x = MDS1, y = MDS2, color = Class, key = ids)) + 
-        geom_point( size = I(2), alpha = .1) + theme(legend.position = "none", legend.text = element_text(angle = 90), legend.key = element_blank(), aspect.ratio =1) +
+        geom_point( size = I(2.5), alpha = .1) + theme(legend.position = "none", legend.text = element_text(angle = 90), legend.key = element_blank(), aspect.ratio =1) +
         labs(y = "MDS 2", x = "MDS 1", title = "Multidimensional Scaling")  + 
         scale_colour_brewer(type =   "qual",palette = "Dark2")
       
-      p <- p + geom_point(data = dat, size =  I(2))
+      p <- p + geom_point(data = dat, size =  I(2.5))
       
     }
     ggplotly(p,tooltip = c("colour","x","y","key")) %>% layout(dragmode = "select")
@@ -200,7 +200,7 @@ shinyServer( function(input, output){
     
     
     p <- ggplot(data = sidepl, aes(x = classpred, y = Probability, colour = Class, key = ids)) + 
-      geom_jitter(height = 0, size = I(2), alpha = .5) +
+      geom_jitter(height = 0, size = I(2.5), alpha = .5) +
       theme(legend.position = "none", axis.text.x  = element_text(angle = 45, vjust = 0.5), aspect.ratio = 1) +
       labs(x = "Class", title = "Side by side plot", y = "Proportion") + scale_colour_brewer(type = "qual", palette = "Dark2")
     
@@ -209,11 +209,11 @@ shinyServer( function(input, output){
       dat <- sidepl %>% dplyr::filter(!ids %in% yy)
       dat_fil <- sidepl %>% dplyr::filter(ids %in% yy)
       p <- ggplot(data = dat, aes(x = classpred, y = Probability, colour = Class, key = ids)) + 
-        geom_jitter(height = 0, size = I(2), alpha = .1) +
+        geom_jitter(height = 0, size = I(2.5), alpha = .1) +
         theme(legend.position = "none",axis.text.x  = element_text(angle = 45, vjust = 0.5) , aspect.ratio = 1) +
         labs(x = "Class", title = "Side by side plot",  y = "Proportion") + scale_colour_brewer(type = "qual", palette = "Dark2")
       
-      p <- p + geom_jitter( height = 0, data = dat_fil, size =I(2)) 
+      p <- p + geom_jitter( height = 0, data = dat_fil, size = I(2.5)) 
     }
     
     ggplotly(p,tooltip = c("colour","y","key")) %>% layout(dragmode = "select")
@@ -236,7 +236,7 @@ shinyServer( function(input, output){
       
       p <- ggplot(data = dat3.empt, aes(
         x = proj.vote.x, y = proj.vote.x.1, colour = Class, key = ids
-      )) +  geom_blank() + geom_point(data = filter(dat3.empt, rep == 2), size = I(2), alpha = .5) + ylab("") +
+      )) +  geom_blank() + geom_point(data = filter(dat3.empt, rep == 2), size = I(2.5), alpha = .5) + ylab("") +
         xlab("") + 
         geom_segment(data = edg, aes(x = x1, xend = x2, y = y1, yend = y2, key = NULL), color = "black") +
       theme(legend.position = "none" , aspect.ratio = 1) + ggtitle("Vote matrix ") +
@@ -253,11 +253,11 @@ shinyServer( function(input, output){
 
         p <- ggplot(data = dat3.empt, aes( x = proj.vote.x, y = proj.vote.x.1, 
                                            colour = Class, key = ids)) + 
-          geom_blank()  + geom_point(data = filter(dat3.empt, rep == 2), size = I(2), alpha = .1) + ylab("") + xlab("") + 
+          geom_blank()  + geom_point(data = filter(dat3.empt, rep == 2), size = I(2.5), alpha = .1) + ylab("") + xlab("") + 
            geom_segment(data = edg, aes(x = x1, xend = x2, y = y1, yend = y2, key = NULL), color = "black") +
           theme(legend.position = "none", aspect.ratio = 1) + ggtitle("Vote matrix ternary plot") +
           scale_colour_brewer(type = "qual",palette = "Dark2")
-        p <- p + geom_point(data = filter(dat33, rep == 2), size = I(2)) +labs(x = "T1", y ="T2") 
+        p <- p + geom_point(data = filter(dat33, rep == 2), size = I(2.5)) +labs(x = "T1", y ="T2") 
       }
       ggplotly(p,tooltip = c("colour","x","y","key")) %>% layout(dragmode = "select")
       
@@ -317,7 +317,7 @@ shinyServer( function(input, output){
       
       p <- ggplot(filter(aux.impo,!ids %in% yy2), aes( x = Variables, y = Abs.importance, group = ids,
                                                      key = ids, var = var)) +
-        geom_jitter(height = 0, size = I(2), alpha = 0.3) + facet_grid(nodetr ~ .) +
+        geom_jitter(height = 0, size = I(2.5), alpha = 0.3) + facet_grid(nodetr ~ .) +
         scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5 ) )
       
@@ -344,7 +344,7 @@ shinyServer( function(input, output){
         
       p <- ggplot(filter(aux.impo,!ids %in% tr), aes( x = Variables, y = Abs.importance, group = ids,
                                                      key = ids, var = var)) +
-        geom_jitter(height = 0, size = I(2), alpha = 0.3) + facet_grid(nodetr ~ .) +
+        geom_jitter(height = 0, size = I(2.5), alpha = 0.3) + facet_grid(nodetr ~ .) +
         scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5 ) )
       
@@ -492,7 +492,7 @@ shinyServer( function(input, output){
 
     if (length(selectedData()) == length(unique(ppf$train[,ppf$class.var]))) {
       p <- ggplot(data = dat.sidepp.pl, aes(x = Classvote, y = Probability, colour = Class, key = ids) ) +
-        geom_jitter(height = 0, size = I(2), alpha = .5) +
+        geom_jitter(height = 0, size = I(2.5), alpha = .5) +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 45, vjust = 0.5), aspect.ratio = 1) +
         labs(x = "Class", title = "Side by side plot PPforest",  y = "Proportion") + scale_colour_brewer(type = "qual",palette =
                                                                                         "Dark2")
@@ -502,11 +502,11 @@ shinyServer( function(input, output){
       dat_fil <- dat.sidepp.pl %>% dplyr::filter(Class %in% selectedData())
 
       p <- ggplot(data = dat, aes(Classvote, Probability, colour = Class, key = ids)) +
-        geom_jitter(height = 0, size = I(2), alpha = .1) +
+        geom_jitter(height = 0, size = I(2.5), alpha = .1) +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 45, vjust = 0.5), aspect.ratio = 1) +
         labs(x = "Class", title = "Side by side plot RF",  y = "Proportion") + scale_colour_brewer(type = "qual",palette =
                                                                                              "Dark2")
-      p <- p + geom_jitter( height = 0, data = dat_fil, alpha = .5, size = I(2))
+      p <- p + geom_jitter( height = 0, data = dat_fil, alpha = .5, size = I(2.5))
 
     }
     ggplotly(p,tooltip = c("colour", "y", "key"))
@@ -519,7 +519,7 @@ shinyServer( function(input, output){
 
     if (length(selectedData()) == length(unique(ppf$train[,ppf$class.var]))) {
       p <- ggplot(data = dat.side.pl, aes(Classvote, Probability, colour = Class, key = ids) ) +
-        geom_jitter(height = 0, size = I(2), alpha = .5) +
+        geom_jitter(height = 0, size = I(2.5), alpha = .5) +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 45, vjust = 0.5), aspect.ratio = 1) +
         labs(x = "Class", title = "Side by side plot RF",  y = "Proportion") + scale_colour_brewer(type = "qual",palette =
                                                                                              "Dark2")
@@ -530,12 +530,12 @@ shinyServer( function(input, output){
       dat_fil <- dat.side.pl %>% dplyr::filter(Class %in% selectedData())
       p <-
         ggplot(data = dat, aes(Classvote, Probability, colour = Class, key = ids)) +
-        geom_jitter(height = 0, size = I(2), alpha = .1) +
+        geom_jitter(height = 0, size = I(2.5), alpha = .1) +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 45, vjust = 0.5), aspect.ratio = 1) +
         labs(x = "Class", title = "Side by side plot RF", y = "Proportion")  + scale_colour_brewer(type = "qual",palette =
                                                                                               "Dark2")
       p <-
-        p + geom_jitter( height = 0,data = dat_fil, size = I(2), alpha = .5
+        p + geom_jitter( height = 0,data = dat_fil, size = I(2.5), alpha = .5
         )
     }
 
