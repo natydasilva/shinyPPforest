@@ -176,7 +176,7 @@ ppf_oob_error <- function(ppf, nsplit1) {
     pred.mtree <- ppf$vote.mat[1:m,]
     
     
-    index2 %>%  lapply(function(x) data.frame(obs=!l.train %in% x))
+    index2 %>%  lapply(function(x) data.table::data.table(obs=!l.train %in% x))
     
     oob.pred <-
       sapply(

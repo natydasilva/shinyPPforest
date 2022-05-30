@@ -27,7 +27,7 @@ rf <- rf_fish
 impoaver <- impoaver_fish
 impoinfo <- impoinfo_fish
 
- tr<- 494
+tr<- 494
 #############################
 #         SERVER            #
 #############################
@@ -48,16 +48,16 @@ shinyServer( function(input, output){
     rv$data$fill <- fill
   }
   
-  #custom events when a user interacts directly with a graph, use event_data to access the data in a selection and
-  #update the selection, id will be the key for the selections
+#custom events when a user interacts directly with a graph, use event_data to access the data in a selection and
+#update the selection, id will be the key for the selections
   observeEvent(event_data("plotly_selected"),{
     selected <- rv$data$ids %in% event_data("plotly_selected")$key
     updateRV(selected)
   })
   
   
-  #custom events when a user interacts directly with a graph, use event_data to access the data in a click and
-  #update the click selection, id will be the key for the selections.
+#custom events when a user interacts directly with a graph, use event_data to access the data in a click and
+#update the click selection, id will be the key for the selections.
   observeEvent(event_data("plotly_click"),{
     k <- event_data("plotly_click")$key
     if (any(k %in% unique(rv$data$ids))){
@@ -83,6 +83,7 @@ shinyServer( function(input, output){
     k <- event_data("plotly_click", source = "dibu")$key
     
     selectnode <-  bnf(ppf[[8]][[k]])$node
+    
     if (any(k %in% unique(rv3$bestnode$ids))) {
       selectedbest <- rv3$bestnode$ids %in% k
       
@@ -98,10 +99,11 @@ shinyServer( function(input, output){
     input$paropt
   })
   
-  selectnnode<- reactive({
+
+  selectednodes <- reactive({
+    # input$goButtonode
     isolate(input$nnode)
-  })
-  
+  }) 
   
   ############################
   #           TAB1           #
@@ -292,16 +294,6 @@ shinyServer( function(input, output){
 
   
 
-  selectednodes <- reactive({
-    input$goButtonode
-    isolate(input$nnode)
-  })  
-
-
-  
-
-
- 
   
   #Importance
   output$importancetree <- renderPlotly({
