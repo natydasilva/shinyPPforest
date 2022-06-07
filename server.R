@@ -1,5 +1,5 @@
 library(ggplot2)
-library(graph)
+# library(graph)
 library(PairViz)
 library(shiny)
 library(plotly)
@@ -13,6 +13,8 @@ library(ggmosaic)
 library(devtools)
 library(PPtreeViz)
 library(PPforest)
+
+options(warn = -1)
 
 source("shinyplots.R")
 
@@ -102,6 +104,7 @@ shinyServer( function(input, output){
 
   selectednodes <- reactive({
     # input$goButtonode
+    # req(input$nnode)
     isolate(input$nnode)
   }) 
   
@@ -297,11 +300,15 @@ shinyServer( function(input, output){
   
   #Importance
   output$importancetree <- renderPlotly({
-    
-    yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
-    yy2 <- yy1[!is.na(yy1)]
-    
+    # req(rv3$bestnode$ids)
+    req(input$nnode)
+    # req(rv3)
+    isolate({
+      yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
+      yy2 <- yy1[!is.na(yy1)]
+
     if ((length(yy2) >0 ) | selectednodes()==TRUE) {
+      print("Entre en la 1ra parte")
   
       impo.pl <- impofn(yy2) %>% group_by(ids) %>% filter(node %in% node[as.numeric(input$nnode)]) 
       impo.pl$nodetr <- rep(as.numeric(input$nnode), length(unique(impofn(yy2)$var))*ppf$n.tree) 
@@ -322,7 +329,7 @@ shinyServer( function(input, output){
       
         
     }else{
-      
+      print("Entre en la 2da parte")
       
       #Using node id for the selected tree
       
@@ -364,14 +371,18 @@ shinyServer( function(input, output){
     #   
     # }
     ggplotly(p,tooltip = c("var","y","key"), source = "dibu")
+    })
   })
 
 
 
   #Tree structure with PPtreeViz
   output$plottree <- renderPlot({
-    yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
-    yy2 <- yy1[!is.na(yy1)]
+    # req(input$nnode)
+    req(rv3$bestnode$ids)
+    isolate({
+      yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
+      yy2 <- yy1[!is.na(yy1)]
 
     if (length(yy2) > 0) {
       plot(ppf[[8]][[yy2]])
@@ -379,14 +390,14 @@ shinyServer( function(input, output){
       plot(ppf[[8]][[tr]])
 
     }
+    })
   })
 
   #Boxplot error tree
   output$boxtreeerror <- renderPlotly({
-  
-    yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
-    yy2 <- yy1[!is.na(yy1)]
-
+    # isolate({
+      yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
+      yy2 <- yy1[!is.na(yy1)]
     if (length(yy2) > 0) {
       dat2 <-   rv3$bestnode %>% dplyr::filter(ids %in% yy2)
     
@@ -428,7 +439,7 @@ shinyServer( function(input, output){
      
 
     }
-
+    # })
   })
   
 
@@ -436,9 +447,12 @@ shinyServer( function(input, output){
   
   #Density
   output$plotdensity <- renderPlotly({
-    yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
-    yy2 <- yy1[!is.na(yy1)]
-    
+    # req(input$nnode)
+    isolate({
+      yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
+      yy2 <- yy1[!is.na(yy1)]
+      
+    })
   
     if(length(yy2) > 0 |selectednodes()==TRUE){
       
@@ -452,9 +466,13 @@ shinyServer( function(input, output){
 
   #Mosaic plot
   output$plotmosaic <- renderPlotly({
-    yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
-    yy2 <- yy1[!is.na(yy1)]
-    
+    req(input$nnode)
+    isolate({
+      yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
+      yy2 <- yy1[!is.na(yy1)]
+      
+    })
+
     if(length(yy2) > 0 |selectednodes()==TRUE){
       PPtree_mosaic(ppf, yy2, nodes= as.numeric(input$nnode)) 
     }else{
