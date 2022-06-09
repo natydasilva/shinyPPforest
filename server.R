@@ -447,12 +447,12 @@ shinyServer( function(input, output){
   
   #Density
   output$plotdensity <- renderPlotly({
-    # req(input$nnode)
+     req(input$nnode)
     isolate({
       yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
       yy2 <- yy1[!is.na(yy1)]
       
-    })
+   
   
     if(length(yy2) > 0 |selectednodes()==TRUE){
       
@@ -461,7 +461,7 @@ shinyServer( function(input, output){
       PPtree_dens(ppf, tr) %>% layout(dragmode = "select")
     }
  
-    
+  })
   })
 
   #Mosaic plot
@@ -471,7 +471,7 @@ shinyServer( function(input, output){
       yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
       yy2 <- yy1[!is.na(yy1)]
       
-    })
+   
 
     if(length(yy2) > 0 |selectednodes()==TRUE){
       PPtree_mosaic(ppf, yy2, nodes= as.numeric(input$nnode)) 
@@ -479,6 +479,7 @@ shinyServer( function(input, output){
       PPtree_mosaic(ppf, tr) %>% layout(dragmode = "select")
 
     }
+    })
 
   })
 
