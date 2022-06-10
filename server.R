@@ -313,29 +313,33 @@ shinyServer( function(input, output){
   
         
       impo.pl <- impofn(yy2) %>%
-        filter(ids !=yy2) %>% 
         group_by(ids) %>% 
         filter(node %in% node[1:length(as.numeric(input$nnode))])
       
+      print("hola")
+      
+      
       impo.plaux <- impofn(yy2) %>%
         filter(ids ==yy2) %>% 
-        group_by(ids) %>% 
-        filter(node %in% node[as.numeric(input$nnode)])
+        filter(node %in% as.numeric(input$nnode))
       
-      impo.pl <- bind_rows(impo.pl,impo.plaux )
       
       impo.pl$nodetr <- rep(as.numeric(input$nnode), length(unique(impofn(yy2)$var))*ppf$n.tree) 
       aux.impo <- impo.pl %>% mutate(nodetr = paste("Node",nodetr))
       
+      impo.plaux$nodetr <- rep(as.numeric(input$nnode), length(unique(impofn(yy2)$var))) 
+      aux.impoaux <- impo.plaux %>% mutate(nodetr = paste("Node",nodetr))
       
+   
       p <- ggplot(filter(aux.impo,!ids %in% yy2), aes( x = Variables, y = Abs.importance, group = ids,
                                                      key = ids, var = var)) +
         geom_jitter(height = 0, size = I(2.5), alpha = 0.3) + facet_grid(nodetr ~ .) +
         scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) + ggtitle("Importance variable for each tree") +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5 ) )
       
-      p <- p + geom_jitter( data = filter(aux.impo, ids %in% yy2), color = "red",height = 0) +
-        facet_grid(nodetr ~ .) + scale_x_discrete(limits = levels(as.factor(impo.pl$var) ) ) +
+      
+      p <- p + geom_jitter( data = filter(aux.impoaux, ids %in% yy2), color = "red",height = 0) +
+        facet_grid(nodetr ~ .) + scale_x_discrete(limits = levels(as.factor(aux.impoaux$var) ) ) +
         ggtitle("Importance variable for each tree") +
         theme(legend.position = "none", axis.text.x  = element_text(angle = 90, vjust = 0.5), aspect.ratio = 1)
       
@@ -423,7 +427,7 @@ shinyServer( function(input, output){
         guides(fill = FALSE) +
          geom_point(
           aes(y = error),key=yy2,alpha = 0.1,size = I(3),color = I("red")
-        ) + coord_flip()+geom_jitter(data = error.tree, aes(y = OOB.error.tree, text = paste0('oob.error',sep = " ", round(OOB.error.tree, 2)))
+        ) + coord_flip()+geom_jitter(data = error.tree, aes(y = OOB.error.tree, text = paste0('oob.error.','tr',yy2,':', sep = " ", round(OOB.error.tree, 2)))
                        , alpha = 0.3, size = I(1), color = I("black")) + labs(x = " ", y = "OOB error tree") 
       pp<- p+theme(axis.title.y=element_blank(),
                    axis.text.y=element_blank(),
@@ -440,7 +444,7 @@ shinyServer( function(input, output){
         scale_fill_manual(values = "#ffffff") +
         guides(fill = FALSE) +
           geom_point(
-          aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + coord_flip()+ geom_jitter(aes(y = OOB.error.tree,text = paste0('oob.error',sep = " ",round(OOB.error.tree, 2)))
+          aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + coord_flip()+ geom_jitter(aes(y = OOB.error.tree,text = paste0('oob.error.','tr',tr,':', sep = " ",round(OOB.error.tree, 2)))
           , alpha = 0.3, size = I(1),color = I("black"))  +
         labs(x = "", y = "OOB error tree")  
        pp<- p+theme(axis.title.y=element_blank(),
