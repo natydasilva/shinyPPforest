@@ -307,12 +307,26 @@ shinyServer( function(input, output){
       yy1 <- as.numeric(rv3$bestnode$ids[rv3$bestnode$fill])
       yy2 <- yy1[!is.na(yy1)]
 
-    if ((length(yy2) >0 ) | selectednodes()==TRUE) {
+      
+      if((length(yy2) >0 ) | selectednodes()==TRUE) {
       print("Entre en la 1ra parte")
   
-      impo.pl <- impofn(yy2) %>% group_by(ids) %>% filter(node %in% node[as.numeric(input$nnode)]) 
+        
+      impo.pl <- impofn(yy2) %>%
+        filter(ids !=yy2) %>% 
+        group_by(ids) %>% 
+        filter(node %in% node[1:length(as.numeric(input$nnode))])
+      
+      impo.plaux <- impofn(yy2) %>%
+        filter(ids ==yy2) %>% 
+        group_by(ids) %>% 
+        filter(node %in% node[as.numeric(input$nnode)])
+      
+      impo.pl <- bind_rows(impo.pl,impo.plaux )
+      
       impo.pl$nodetr <- rep(as.numeric(input$nnode), length(unique(impofn(yy2)$var))*ppf$n.tree) 
       aux.impo <- impo.pl %>% mutate(nodetr = paste("Node",nodetr))
+      
       
       p <- ggplot(filter(aux.impo,!ids %in% yy2), aes( x = Variables, y = Abs.importance, group = ids,
                                                      key = ids, var = var)) +
@@ -473,7 +487,7 @@ shinyServer( function(input, output){
       
    
 
-    if(length(yy2) > 0 |selectednodes()==TRUE){
+    if(length(yy2) > 0 |selectednodes() == TRUE){
       PPtree_mosaic(ppf, yy2, nodes= as.numeric(input$nnode)) 
     }else{
       PPtree_mosaic(ppf, tr) %>% layout(dragmode = "select")
