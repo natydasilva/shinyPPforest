@@ -92,7 +92,7 @@ shinyUI(fluidPage(
                  selectInput(
                    'nnode', 'Select nodes', choices = bnf(ppf[[8]][[494]])$node, selected =bnf(ppf[[8]][[494]])$node[1:3],
                    multiple = TRUE
-                 ), actionButton("goButtonode", "Go!"), width = '100px'),
+                 ),width = '100px'),
         )),
          
          

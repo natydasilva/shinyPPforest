@@ -294,9 +294,6 @@ shinyServer( function(input, output){
   ################################
   #             Tab 2            #
   ################################
-
-  
-
   
   #Importance
   output$importancetree <- renderPlotly({
@@ -309,14 +306,12 @@ shinyServer( function(input, output){
 
       
       if((length(yy2) >0 ) | selectednodes()==TRUE) {
-      print("Entre en la 1ra parte")
+      # print("Entre en la 1ra parte")
   
         
       impo.pl <- impofn(yy2) %>%
         group_by(ids) %>% 
         filter(node %in% node[1:length(as.numeric(input$nnode))])
-      
-      print("hola")
       
       
       impo.plaux <- impofn(yy2) %>%
@@ -347,7 +342,7 @@ shinyServer( function(input, output){
       
         
     }else{
-      print("Entre en la 2da parte")
+      # print("Entre en la 2da parte")
       
       #Using node id for the selected tree
       
@@ -427,7 +422,7 @@ shinyServer( function(input, output){
         guides(fill = FALSE) +
          geom_point(
           aes(y = error),key=yy2,alpha = 0.1,size = I(3),color = I("red")
-        ) + coord_flip()+geom_jitter(data = error.tree, aes(y = OOB.error.tree, text = paste0('oob.error.','tr',yy2,':', sep = " ", round(OOB.error.tree, 2)))
+        ) + coord_flip()+geom_jitter(data = error.tree, aes(y = OOB.error.tree, text = paste0('oob.error.','tr', yy2,':', sep = " ", round(OOB.error.tree, 2)))
                        , alpha = 0.3, size = I(1), color = I("black")) + labs(x = " ", y = "OOB error tree") 
       pp<- p+theme(axis.title.y=element_blank(),
                    axis.text.y=element_blank(),
@@ -444,7 +439,7 @@ shinyServer( function(input, output){
         scale_fill_manual(values = "#ffffff") +
         guides(fill = FALSE) +
           geom_point(
-          aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + coord_flip()+ geom_jitter(aes(y = OOB.error.tree,text = paste0('oob.error.','tr',tr,':', sep = " ",round(OOB.error.tree, 2)))
+          aes(y = error), alpha = 0.1, size = I(3), color = I("red") ) + coord_flip()+ geom_jitter(aes(y = OOB.error.tree,text = paste0('oob.error.','tr',yy2,':', sep = " ",round(OOB.error.tree, 2)))
           , alpha = 0.3, size = I(1),color = I("black"))  +
         labs(x = "", y = "OOB error tree")  
        pp<- p+theme(axis.title.y=element_blank(),
