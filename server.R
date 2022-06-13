@@ -13,8 +13,10 @@ library(ggmosaic)
 library(devtools)
 library(PPtreeViz)
 library(PPforest)
+library(BiocManager)
+options('repos',warn = -1)
 
-options(warn = -1)
+
 
 source("shinyplots.R")
 
